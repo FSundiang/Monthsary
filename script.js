@@ -56,7 +56,7 @@ const CAROUSEL_ITEMS = [
     memo: 'Super saya kong comfortable kang nakikipag-bond dito babii.'
   },
   {
-    img: 'img/graduation.jpg',
+    img: 'img/graduation-1.JPG',
     gradient: 'linear-gradient(135deg, #a8edea 0%, #fed6e3 100%)',
     emoji: '🌊',
     title: 'Your baby did it!',
