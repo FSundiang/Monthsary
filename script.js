@@ -8,7 +8,7 @@
 
 const CAROUSEL_ITEMS = [
   {
-    img: 'img/aqua-planet.jpg',
+    img: 'img/aqua-planet.JPG',
     gradient: 'linear-gradient(135deg, #f4a7b9 0%, #c9b8e8 100%)',
     emoji: '🌊',
     title: 'Our First Swimming',
@@ -16,7 +16,7 @@ const CAROUSEL_ITEMS = [
     memo: 'Kabado niyan siya sa mga rides, pero nakapag-picture kasama ang baby niya.'
   },
   {
-    img: 'img/azure.jpg',
+    img: 'img/azure.JPG',
     gradient: 'linear-gradient(135deg, #fce4ec 0%, #f06292 100%)',
     emoji: '🛏️',
     title: 'Our First Staycation',
@@ -24,7 +24,7 @@ const CAROUSEL_ITEMS = [
     memo: 'Kahit super mahal ang nagastos natin babii, super saya and sulit ang araw natin na to!!'
   },
   {
-    img: 'img/first-valentine.jpg',
+    img: 'img/first-valentine.JPG',
     gradient: 'linear-gradient(135deg, #c9b8e8 0%, #7c4dff 60%, #2a1a2e 100%)',
     emoji: '✨',
     title: 'Our First Valentine Celebration',
@@ -32,7 +32,7 @@ const CAROUSEL_ITEMS = [
     memo: 'Kahit na stressing ang grab during valentine, we celebrated our valentines with a smile and enjoyment.'
   },
   {
-    img: 'img/baguio-mirror.jpg',
+    img: 'img/baguio-mirror.JPG',
     gradient: 'linear-gradient(135deg, #f5efe6 0%, #f4a7b9 100%)',
     emoji: '🗺️',
     title: 'Our First Baguio Trip',
@@ -40,7 +40,7 @@ const CAROUSEL_ITEMS = [
     memo: 'Our very first mirror shot in baguio, ito ang first photobooth picture na maayos natin.'
   },
   {
-    img: 'img/coffee-date.jpg',
+    img: 'img/coffee-date.JPG',
     gradient: 'linear-gradient(135deg, #ffd1dc 0%, #c9b8e8 100%)',
     emoji: '☕',
     title: 'Coffee Date in Baguio',
@@ -48,7 +48,7 @@ const CAROUSEL_ITEMS = [
     memo: 'Coffee Date sa ibang lugar was a memorable experience babii, ulitin natin to ulit sa susunodd!!'
   },
   {
-    img: 'img/family.jpeg',
+    img: 'img/family.JPEG',
     gradient: 'linear-gradient(135deg, #a8edea 0%, #fed6e3 100%)',
     emoji: '🌊',
     title: 'Our Second Swimming Together',
@@ -56,7 +56,7 @@ const CAROUSEL_ITEMS = [
     memo: 'Super saya kong comfortable kang nakikipag-bond dito babii.'
   },
   {
-    img: 'img/graduation.jpg',
+    img: 'img/graduation.JPG',
     gradient: 'linear-gradient(135deg, #a8edea 0%, #fed6e3 100%)',
     emoji: '🌊',
     title: 'Your baby did it!',
@@ -67,7 +67,7 @@ const CAROUSEL_ITEMS = [
 
 const FLIPCARD_ITEMS = [
   {
-    img: 'img/photobooth-baguio.jpg',
+    img: 'img/photobooth-baguio.JPG',
     gradient: 'linear-gradient(135deg, #f4a7b9, #c9b8e8)',
     emoji: '💌',
     frontLabel: 'Very First Photobooth that we\'ve take in Baguio',
@@ -76,7 +76,7 @@ const FLIPCARD_ITEMS = [
     backText: 'I didn\'t know it then, but meeting you was the best thing that ever happened to me. Everything after felt like a gift.'
   },
   {
-    img: 'img/valentine-flowers.jpg',
+    img: 'img/valentine-flowers.JPG',
     gradient: 'linear-gradient(135deg, #c9b8e8, #7c4dff)',
     emoji: '🍽️',
     frontLabel: 'Favorite Date',
@@ -85,7 +85,7 @@ const FLIPCARD_ITEMS = [
     backText: 'Our very first valentine celebration as a couple, kahit na buking mga surprises and gifts ko, it\'s still worth it to celebrate our day. '
   },
   {
-    img: 'img/valentine-photobooth.jpg',
+    img: 'img/valentine-photobooth.JPG',
     gradient: 'linear-gradient(135deg, #fce4ec, #f4a7b9)',
     emoji: '😂',
     frontLabel: 'I know ayaw mo ang picture na ito babii, pero ilalagay ko siya hehe',
@@ -94,7 +94,7 @@ const FLIPCARD_ITEMS = [
     backText: 'I know na ayaw mo ang picture na ito since sinasabi mong "ang panget ko diyan" pero hindi babii, you\'re beautiful kahit anong angle sa picture yan PS. sana hindi ka magalit hehehe.'
   },
   {
-    img: 'img/grad-pic.jpeg',
+    img: 'img/grad-pic.JPEG',
     gradient: 'linear-gradient(135deg, #f5efe6, #c9b8e8)',
     emoji: '💛',
     frontLabel: 'I did it babii!! Ikaw na ang next niyan po',
@@ -103,7 +103,7 @@ const FLIPCARD_ITEMS = [
     backText: 'Thank you for making ordinary days feel magical. Every laugh, every support, every conversation — with you, everything becomes something I\'ll treasure.'
   },
   {
-    img: 'img/atokk.jpg',
+    img: 'img/atokk.JPG',
     gradient: 'linear-gradient(135deg, #e8f5e9, #a8edea)',
     emoji: '🔭',
     frontLabel: 'Future Dreams',
