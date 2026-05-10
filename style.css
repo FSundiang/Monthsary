@@ -1117,7 +1117,7 @@ button { border: none; background: none; cursor: pointer; font-family: inherit; 
     flex: 0 0 calc(100vw - 48px);
     max-width: 100%;
   }
-  .carousel-card__img-wrap { height: 240px; }
+  .carousel-card__img-wrap { height: 400px; }
   .carousel-card__title { font-size: 1rem; }
   .carousel-card__memo { font-size: 0.72rem; }
 
