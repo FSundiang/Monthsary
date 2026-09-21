@@ -1155,3 +1155,196 @@ button { border: none; background: none; cursor: pointer; font-family: inherit; 
 ::-webkit-scrollbar { width: 4px; }
 ::-webkit-scrollbar-track { background: var(--navy); }
 ::-webkit-scrollbar-thumb { background: rgba(244,167,185,0.3); border-radius: 2px; }
+/* ============================================================
+   SCRATCH CARD SECTION
+   ============================================================ */
+.scratch-section {
+  background: var(--navy-mid);
+}
+
+.scratch-card-wrap {
+  position: relative;
+  width: 480px;
+  height: 520px;
+  margin: 0 auto;
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  box-shadow: 0 24px 80px rgba(0, 0, 0, 0.5), 0 0 0 1px var(--glass-border);
+  cursor: crosshair;
+  touch-action: none;
+  user-select: none;
+}
+
+/* The revealed image layer (bottom) */
+.scratch-reveal {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+}
+
+.scratch-reveal__img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.scratch-reveal__overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(to top, rgba(13,15,26,0.7) 0%, transparent 50%);
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  padding-bottom: 24px;
+  opacity: 0;
+  transition: opacity 0.6s ease;
+}
+
+.scratch-reveal__overlay.visible {
+  opacity: 1;
+}
+
+.scratch-reveal__label {
+  font-family: var(--font-script);
+  font-size: 1.4rem;
+  color: var(--white);
+  text-shadow: 0 2px 8px rgba(0,0,0,0.6);
+  letter-spacing: 0.05em;
+}
+
+/* The scratch canvas (top) */
+#scratch-canvas {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  border-radius: var(--radius-lg);
+  /* canvas bg is set via JS */
+}
+
+/* Hint badge — center of canvas */
+.scratch-hint {
+  position: absolute;
+  z-index: 3;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: linear-gradient(135deg, rgba(201,184,232,0.3), rgba(244,167,185,0.35));
+  border: 1.5px solid rgba(255,255,255,0.25);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border-radius: 14px;
+  padding: 14px 22px;
+  text-align: center;
+  color: var(--white);
+  pointer-events: none;
+  transition: opacity 0.4s ease, transform 0.4s ease;
+  box-shadow: 0 0 28px rgba(201,184,232,0.3);
+}
+
+.scratch-hint.hidden {
+  opacity: 0;
+  transform: translate(-50%, -50%) scale(0.9);
+  pointer-events: none;
+}
+
+.scratch-hint__hand {
+  font-size: 1.3rem;
+  display: inline-block;
+  animation: hintWave 1.5s ease-in-out infinite;
+  margin-right: 4px;
+}
+
+@keyframes hintWave {
+  0%, 100% { transform: rotate(-10deg); }
+  50%       { transform: rotate(10deg); }
+}
+
+.scratch-hint strong {
+  font-size: 1rem;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+}
+
+.scratch-hint__sparkle {
+  font-size: 0.9rem;
+  color: var(--pink-soft);
+  margin-left: 4px;
+}
+
+.scratch-hint p {
+  font-size: 0.72rem;
+  color: rgba(255,255,255,0.7);
+  letter-spacing: 0.05em;
+  margin-top: 4px;
+}
+
+/* Done banner */
+.scratch-done {
+  position: absolute;
+  z-index: 4;
+  bottom: 0;
+  left: 0; right: 0;
+  background: rgba(13,15,26,0.75);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border-top: 1px solid var(--glass-border);
+  padding: 14px 20px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  opacity: 0;
+  transform: translateY(100%);
+  transition: opacity 0.5s ease, transform 0.5s ease;
+  pointer-events: none;
+}
+
+.scratch-done.visible {
+  opacity: 1;
+  transform: translateY(0);
+  pointer-events: all;
+}
+
+.scratch-done span {
+  font-size: 0.75rem;
+  color: var(--pink-soft);
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+}
+
+.scratch-done button {
+  font-size: 0.75rem;
+  color: var(--white);
+  background: rgba(244,167,185,0.15);
+  border: 1px solid rgba(244,167,185,0.3);
+  border-radius: 100px;
+  padding: 6px 16px;
+  cursor: pointer;
+  font-family: var(--font-body);
+  transition: background 0.3s ease;
+}
+
+.scratch-done button:hover {
+  background: rgba(244,167,185,0.3);
+}
+
+/* Progress ring (optional subtle indicator) */
+.scratch-progress {
+  position: absolute;
+  z-index: 3;
+  top: 12px;
+  right: 14px;
+  font-size: 0.65rem;
+  color: rgba(255,255,255,0.45);
+  letter-spacing: 0.1em;
+  pointer-events: none;
+  transition: opacity 0.3s ease;
+}
+
+/* Responsive */
+@media (max-width: 480px) {
+  .scratch-card-wrap {
+    width: calc(100vw - 48px);
+    height: 430px;
+  }
+}

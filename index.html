@@ -143,6 +143,41 @@
     <audio id="bg-music" src="img/photograph.mp3" loop></audio>
   </div>
 
+  <!-- ========== SCRATCH CARD SECTION ========== -->
+  <section id="scratch" class="section scratch-section">
+    <div class="section__header">
+      <span class="section__tag">A Little Surprise</span>
+      <h2 class="section__title">Aren't we <em>cute?</em></h2>
+      <p class="section__desc">Scratch away to reveal a special memory hidden just for you.</p>
+    </div>
+
+    <div class="scratch-card-wrap">
+      <canvas id="scratch-canvas"></canvas>
+      <div class="scratch-reveal" id="scratch-reveal">
+        <!-- The hidden image goes here — swap src for your actual photo -->
+        <img
+          src="img/aqua-planet.JPG"
+          alt="Our sweet memory"
+          class="scratch-reveal__img"
+          onerror="this.style.display='none';this.parentElement.style.background='linear-gradient(135deg,#f4a7b9,#c9b8e8)'"
+        />
+        <div class="scratch-reveal__overlay">
+          <span class="scratch-reveal__label">♥ So cute together ♥</span>
+        </div>
+      </div>
+      <div class="scratch-hint" id="scratch-hint">
+        <span class="scratch-hint__hand">👋</span>
+        <strong>Scratch Here!</strong>
+        <span class="scratch-hint__sparkle">✦</span>
+        <p>Use your finger or mouse to reveal</p>
+      </div>
+      <div class="scratch-done" id="scratch-done">
+        <span>✦ Fully Revealed ✦</span>
+        <button id="scratch-reset">Scratch again?</button>
+      </div>
+    </div>
+  </section>
+
   <!-- ========== ENDING SECTION ========== -->
   <section id="ending" class="section ending-section">
     <div class="ending__stars" id="ending-stars"></div>

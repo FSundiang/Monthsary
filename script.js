@@ -535,3 +535,179 @@ const LETTER_TEXT = `No matter how busy life gets, I'll always be grateful that 
     }
   }, { passive: true });
 })();
+/* ============================================================
+   SCRATCH CARD
+   ============================================================ */
+(function initScratchCard() {
+  const wrap    = document.querySelector('.scratch-card-wrap');
+  const canvas  = document.getElementById('scratch-canvas');
+  const ctx     = canvas.getContext('2d');
+  const hint    = document.getElementById('scratch-hint');
+  const doneBanner = document.getElementById('scratch-done');
+  const resetBtn   = document.getElementById('scratch-reset');
+  const reveal  = document.getElementById('scratch-reveal');
+  const overlay = reveal.querySelector('.scratch-reveal__overlay');
+
+  // Texture colors to mimic the deep-rose fabric look from the screenshot
+  const COVER_COLOR = '#9b1a3c'; // deep rose/crimson — matches screenshot
+
+  let isDrawing   = false;
+  let hasStarted  = false;
+  let isComplete  = false;
+  let checkTimer  = null;
+
+  /* ── Setup ── */
+  function setupCanvas() {
+    const rect = wrap.getBoundingClientRect();
+    canvas.width  = rect.width  || 340;
+    canvas.height = rect.height || 480;
+
+    // Fill with cover color
+    ctx.fillStyle = COVER_COLOR;
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    // Add subtle noise/texture overlay
+    addTextureNoise();
+
+    // Reset state
+    isComplete = false;
+    hasStarted = false;
+    hint.classList.remove('hidden');
+    doneBanner.classList.remove('visible');
+    overlay.classList.remove('visible');
+  }
+
+  // Draw subtle dot-noise texture like the fabric in the screenshot
+  function addTextureNoise() {
+    ctx.save();
+    for (let i = 0; i < canvas.width * canvas.height * 0.004; i++) {
+      const x = Math.random() * canvas.width;
+      const y = Math.random() * canvas.height;
+      const r = Math.random() * 1.2;
+      const alpha = Math.random() * 0.18;
+      ctx.beginPath();
+      ctx.arc(x, y, r, 0, Math.PI * 2);
+      ctx.fillStyle = `rgba(255,255,255,${alpha})`;
+      ctx.fill();
+    }
+    ctx.restore();
+  }
+
+  /* ── Drawing ── */
+  function getPos(e) {
+    const rect = canvas.getBoundingClientRect();
+    const scaleX = canvas.width  / rect.width;
+    const scaleY = canvas.height / rect.height;
+    if (e.touches) {
+      return {
+        x: (e.touches[0].clientX - rect.left) * scaleX,
+        y: (e.touches[0].clientY - rect.top)  * scaleY
+      };
+    }
+    return {
+      x: (e.clientX - rect.left) * scaleX,
+      y: (e.clientY - rect.top)  * scaleY
+    };
+  }
+
+  function scratch(e) {
+    if (!isDrawing) return;
+    e.preventDefault();
+
+    if (!hasStarted) {
+      hasStarted = true;
+      hint.classList.add('hidden');
+    }
+
+    const pos = getPos(e);
+
+    // Use destination-out to erase the cover, revealing image beneath
+    ctx.globalCompositeOperation = 'destination-out';
+    ctx.beginPath();
+
+    // Slightly larger brush on touch
+    const radius = e.touches ? 38 : 30;
+
+    ctx.arc(pos.x, pos.y, radius, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Add soft feathered edge
+    const grad = ctx.createRadialGradient(pos.x, pos.y, radius * 0.4, pos.x, pos.y, radius);
+    grad.addColorStop(0,   'rgba(0,0,0,1)');
+    grad.addColorStop(1,   'rgba(0,0,0,0)');
+    ctx.fillStyle = grad;
+    ctx.beginPath();
+    ctx.arc(pos.x, pos.y, radius, 0, Math.PI * 2);
+    ctx.fill();
+
+    ctx.globalCompositeOperation = 'source-over';
+
+    // Throttle coverage check
+    clearTimeout(checkTimer);
+    checkTimer = setTimeout(checkCoverage, 120);
+  }
+
+  /* ── Coverage Check ── */
+  function checkCoverage() {
+    if (isComplete) return;
+    const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+    const data = imageData.data;
+    let cleared = 0;
+    // Sample every 4th pixel for perf
+    for (let i = 3; i < data.length; i += 16) {
+      if (data[i] < 128) cleared++;
+    }
+    const total = (data.length / 16);
+    const pct   = cleared / total;
+
+    if (pct > 0.55) { // 55% cleared → fully reveal
+      completeReveal();
+    }
+  }
+
+  function completeReveal() {
+    isComplete = true;
+    // Fade out remaining cover
+    let alpha = 1;
+    const fade = setInterval(() => {
+      alpha -= 0.06;
+      if (alpha <= 0) {
+        alpha = 0;
+        clearInterval(fade);
+        canvas.style.display = 'none';
+        doneBanner.classList.add('visible');
+        overlay.classList.add('visible');
+      }
+      ctx.globalAlpha = alpha;
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      ctx.fillStyle = COVER_COLOR;
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      addTextureNoise();
+      ctx.globalAlpha = 1;
+    }, 30);
+  }
+
+  /* ── Event Listeners ── */
+  canvas.addEventListener('mousedown',  e => { isDrawing = true; scratch(e); });
+  canvas.addEventListener('mousemove',  e => { if (isDrawing) scratch(e); });
+  canvas.addEventListener('mouseup',    () => { isDrawing = false; });
+  canvas.addEventListener('mouseleave', () => { isDrawing = false; });
+
+  canvas.addEventListener('touchstart', e => { isDrawing = true; scratch(e); }, { passive: false });
+  canvas.addEventListener('touchmove',  e => { if (isDrawing) scratch(e); },   { passive: false });
+  canvas.addEventListener('touchend',   () => { isDrawing = false; });
+
+  /* ── Reset ── */
+  resetBtn.addEventListener('click', () => {
+    canvas.style.display = 'block';
+    setupCanvas();
+  });
+
+  /* ── Init on load ── */
+  // Wait for wrap to have dimensions
+  if (wrap.getBoundingClientRect().width > 0) {
+    setupCanvas();
+  } else {
+    window.addEventListener('load', setupCanvas);
+  }
+})();
