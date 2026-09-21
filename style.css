@@ -1164,8 +1164,8 @@ button { border: none; background: none; cursor: pointer; font-family: inherit; 
 
 .scratch-card-wrap {
   position: relative;
-  width: 480px;
-  height: 520px;
+  width: 340px;
+  height: 480px;
   margin: 0 auto;
   border-radius: var(--radius-lg);
   overflow: hidden;
@@ -1346,5 +1346,178 @@ button { border: none; background: none; cursor: pointer; font-family: inherit; 
   .scratch-card-wrap {
     width: calc(100vw - 48px);
     height: 430px;
+  }
+}
+
+/* ============================================================
+   COUNTDOWN TIMER SECTION
+   ============================================================ */
+.countdown-section {
+  background: var(--navy);
+}
+
+.countdown-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 20px;
+  max-width: 860px;
+  margin: 0 auto 48px;
+}
+
+/* Individual unit card */
+.countdown-card {
+  position: relative;
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-lg);
+  padding: 36px 20px 28px;
+  text-align: center;
+  overflow: hidden;
+  transition: border-color 0.35s ease, box-shadow 0.35s ease, transform 0.35s ease;
+}
+
+.countdown-card::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(ellipse 80% 60% at 50% 0%, rgba(244,167,185,0.07) 0%, transparent 70%);
+  pointer-events: none;
+}
+
+/* Bottom accent bar */
+.countdown-card::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 10%;
+  right: 10%;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, var(--pink-soft), var(--lavender), transparent);
+  border-radius: 2px;
+  opacity: 0.5;
+}
+
+.countdown-card:hover {
+  border-color: rgba(244,167,185,0.35);
+  box-shadow: 0 12px 48px rgba(244,167,185,0.12);
+  transform: translateY(-4px);
+}
+
+/* The big number */
+.countdown-card__num {
+  display: block;
+  font-family: var(--font-display);
+  font-size: clamp(3rem, 7vw, 4.5rem);
+  font-weight: 600;
+  line-height: 1;
+  background: linear-gradient(135deg, var(--white) 30%, var(--pink-soft) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  margin-bottom: 10px;
+  letter-spacing: -0.02em;
+  /* Animate digit changes */
+  transition: transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.countdown-card__num.tick {
+  transform: scale(1.08);
+}
+
+/* Label */
+.countdown-card__label {
+  display: block;
+  font-size: 0.65rem;
+  letter-spacing: 0.28em;
+  text-transform: uppercase;
+  color: var(--white-dim);
+}
+
+/* Seconds card — slightly dimmer to de-emphasize the fast ticker */
+.countdown-card--seconds .countdown-card__num {
+  background: linear-gradient(135deg, var(--white-dim) 0%, var(--lavender) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* Pills row */
+.countdown-pills {
+  display: flex;
+  justify-content: center;
+  gap: 14px;
+  flex-wrap: wrap;
+  max-width: 860px;
+  margin: 0 auto;
+}
+
+.countdown-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  border: 1.5px solid rgba(244,167,185,0.35);
+  color: var(--white);
+  font-size: 0.85rem;
+  font-weight: 400;
+  letter-spacing: 0.04em;
+  padding: 12px 24px;
+  border-radius: 100px;
+  background: var(--glass-bg);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  transition: border-color 0.3s, box-shadow 0.3s;
+}
+
+.countdown-pill:hover {
+  border-color: var(--pink-soft);
+  box-shadow: 0 0 24px rgba(244,167,185,0.15);
+}
+
+.countdown-pill--filled {
+  background: linear-gradient(135deg, rgba(244,167,185,0.25), rgba(201,184,232,0.2));
+  border-color: rgba(244,167,185,0.5);
+}
+
+.countdown-pill__icon {
+  font-size: 1rem;
+}
+
+/* ── Responsive ── */
+@media (max-width: 768px) {
+  .countdown-grid {
+    grid-template-columns: repeat(3, 1fr);
+    gap: 14px;
+  }
+  .countdown-card {
+    padding: 28px 12px 22px;
+  }
+  .countdown-card__num {
+    font-size: 2.2rem;
+  }
+  .countdown-card__label {
+    font-size: 0.58rem;
+    letter-spacing: 0.18em;
+  }
+  .countdown-pills {
+    flex-direction: column;
+    align-items: center;
+  }
+}
+
+@media (max-width: 480px) {
+  .countdown-grid {
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+  }
+  .countdown-card {
+    padding: 22px 8px 18px;
+    border-radius: 14px;
+  }
+  .countdown-card__num {
+    font-size: 1.8rem;
+  }
+  .countdown-pill {
+    font-size: 0.78rem;
+    padding: 10px 18px;
   }
 }
