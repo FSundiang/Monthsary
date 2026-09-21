@@ -536,6 +536,105 @@ const LETTER_TEXT = `No matter how busy life gets, I'll always be grateful that 
   }, { passive: true });
 })();
 /* ============================================================
+   COUNTDOWN TIMER
+   ============================================================ */
+(function initCountdown() {
+  // ── Set your anniversary / start date here ──
+  const START = new Date('2025-10-23T00:00:00');
+
+  const elYears   = document.getElementById('ct-years');
+  const elMonths  = document.getElementById('ct-months');
+  const elDays    = document.getElementById('ct-days');
+  const elHours   = document.getElementById('ct-hours');
+  const elMins    = document.getElementById('ct-minutes');
+  const elSecs    = document.getElementById('ct-seconds');
+  const elTotal   = document.getElementById('ct-total-days');
+  const elMile    = document.getElementById('ct-next-milestone');
+
+  if (!elYears) return;
+
+  function pad(n) { return String(n).padStart(2, '0'); }
+
+  function tick(el, val) {
+    const str = pad(val);
+    if (el.textContent !== str) {
+      el.textContent = str;
+      el.classList.remove('tick');
+      // Force reflow then re-add for animation
+      void el.offsetWidth;
+      el.classList.add('tick');
+      setTimeout(() => el.classList.remove('tick'), 260);
+    }
+  }
+
+  function getNextMilestone(totalDays) {
+    // Milestones: every 100 days, every anniversary year
+    const milestones = [];
+    for (let i = 100; i <= totalDays + 400; i += 100) milestones.push(i);
+    for (let y = 1; y <= 10; y++) milestones.push(y * 365);
+    milestones.sort((a, b) => a - b);
+    const next = milestones.find(m => m > totalDays);
+    if (!next) return null;
+    return { days: next - totalDays, label: next % 365 === 0 ? `${next / 365} year${next / 365 > 1 ? 's' : ''} together` : `${next} days together` };
+  }
+
+  function update() {
+    const now   = new Date();
+    const diff  = now - START;      // ms
+
+    if (diff < 0) {
+      // Relationship hasn't started yet according to dates — show zeroes
+      [elYears, elMonths, elDays, elHours, elMins, elSecs].forEach(el => el.textContent = '00');
+      elTotal.textContent = '0 days together';
+      elMile.textContent  = 'The story begins soon ✨';
+      return;
+    }
+
+    // Total days (floor)
+    const totalDays = Math.floor(diff / 86400000);
+
+    // Years / remaining months / remaining days
+    const s   = START;
+    const n   = now;
+    let years = n.getFullYear() - s.getFullYear();
+    let months = n.getMonth() - s.getMonth();
+    let days  = n.getDate() - s.getDate();
+
+    if (days < 0) {
+      months--;
+      // Days in previous month
+      const prev = new Date(n.getFullYear(), n.getMonth(), 0);
+      days += prev.getDate();
+    }
+    if (months < 0) { years--; months += 12; }
+
+    // Hours / minutes / seconds from the ms remainder
+    const msInDay = diff % 86400000;
+    const hours   = Math.floor(msInDay / 3600000);
+    const minutes = Math.floor((msInDay % 3600000) / 60000);
+    const seconds = Math.floor((msInDay % 60000) / 1000);
+
+    tick(elYears,  years);
+    tick(elMonths, months);
+    tick(elDays,   days);
+    tick(elHours,  hours);
+    tick(elMins,   minutes);
+    tick(elSecs,   seconds);
+
+    // Pills
+    elTotal.textContent = `${totalDays.toLocaleString()} days together`;
+
+    const mile = getNextMilestone(totalDays);
+    if (mile) {
+      elMile.textContent = `${mile.days} day${mile.days !== 1 ? 's' : ''} to ${mile.label}`;
+    }
+  }
+
+  update();
+  setInterval(update, 1000);
+})();
+
+/* ============================================================
    SCRATCH CARD
    ============================================================ */
 (function initScratchCard() {
