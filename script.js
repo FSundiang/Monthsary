@@ -848,7 +848,7 @@ const CAROUSEL_ITEMS = [
     memo: 'The day you have a Professional IT, ikaw na next year niyan my future Nursing.'
   },
   {
-    img: 'img/noook.JPG,
+    img: 'img/noook.JPG',
     gradient: 'linear-gradient(135deg, #a8edea 0%, #fed6e3 100%)',
     emoji: '🛏️',
     title: 'First ever sleep together natin!',
