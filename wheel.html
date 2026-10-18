@@ -1,0 +1,1237 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Spin to Win — Our Monthsary</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=DM+Sans:wght@300;400;500;600;700&family=Dancing+Script:wght@600;700&display=swap" rel="stylesheet" />
+<style>
+
+/* ---- Base tokens & helpers (copied from style.css so this file stands alone) ---- */
+:root {
+  --pink-soft:#f4a7b9; --pink-light:#fce4ec; --pink-glow:rgba(244,167,185,0.35);
+  --lavender:#c9b8e8; --lavender-glow:rgba(201,184,232,0.25); --beige:#f5efe6;
+  --navy:#0d0f1a; --navy-mid:#141629; --white:#ffffff;
+  --white-soft:rgba(255,255,255,0.08); --white-dim:rgba(255,255,255,0.55);
+  --glass-bg:rgba(255,255,255,0.06); --glass-border:rgba(255,255,255,0.12);
+  --font-display:'Cormorant Garamond',serif; --font-script:'Dancing Script',cursive; --font-body:'DM Sans',sans-serif;
+  --radius-lg:20px; --radius-xl:32px;
+  --transition:0.45s cubic-bezier(0.25,0.46,0.45,0.94);
+  --shadow-glow:0 0 40px rgba(244,167,185,0.2);
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+html{scroll-behavior:smooth;font-size:16px;}
+body{background-color:var(--navy);color:var(--white);font-family:var(--font-body);font-weight:300;overflow-x:hidden;line-height:1.7;}
+a{text-decoration:none;color:inherit;}
+button{border:none;background:none;cursor:pointer;font-family:inherit;}
+.fade-in-up{opacity:0;transform:translateY(36px);animation:fadeInUp 0.9s var(--transition) forwards;}
+.delay-1{animation-delay:0.2s;} .delay-2{animation-delay:0.5s;} .delay-3{animation-delay:0.75s;}
+.delay-4{animation-delay:1s;} .delay-5{animation-delay:1.4s;}
+@keyframes fadeInUp{to{opacity:1;transform:translateY(0);}}
+.section__tag{display:inline-block;font-family:var(--font-body);font-size:0.7rem;letter-spacing:0.25em;text-transform:uppercase;color:var(--pink-soft);background:rgba(244,167,185,0.1);border:1px solid rgba(244,167,185,0.25);padding:6px 16px;border-radius:100px;margin-bottom:20px;}
+.section__title{font-family:var(--font-display);font-size:clamp(2rem,5vw,3.5rem);font-weight:400;line-height:1.2;color:var(--white);margin-bottom:16px;}
+.section__title em{font-style:italic;color:var(--pink-soft);}
+.section__desc{font-size:0.95rem;color:var(--white-dim);max-width:520px;margin:0 auto;}
+.star{position:absolute;border-radius:50%;background:white;animation:twinkle ease-in-out infinite alternate;}
+@keyframes twinkle{from{opacity:0.1;transform:scale(0.8);}to{opacity:0.9;transform:scale(1.2);}}
+
+/* ============================================================
+   PAGES.CSS — shared styles for wheel.html and letter.html
+   Loads AFTER style.css and reuses its colour / font tokens.
+   ============================================================ */
+
+:root {
+  --rose-1: #b32a50;   /* wheel rim + button, from the reference image */
+  --rose-2: #8a0f31;
+  --rose-ink: #f3dfe4;
+}
+
+:focus-visible {
+  outline: 2px solid var(--pink-soft);
+  outline-offset: 3px;
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px; height: 1px;
+  padding: 0; margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* ---------- Page shell (same navy + glows as the home page) ---------- */
+body.page {
+  min-height: 100dvh;
+  background: var(--navy);
+}
+
+.page-bg {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background:
+    radial-gradient(ellipse 80% 60% at 50% 18%, rgba(244,167,185,0.12) 0%, transparent 70%),
+    radial-gradient(ellipse 60% 50% at 82% 78%, rgba(201,184,232,0.10) 0%, transparent 60%),
+    radial-gradient(ellipse 90% 70% at 50% 50%, rgba(201,184,232,0.06) 0%, transparent 70%),
+    var(--navy);
+}
+
+.page-stars {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+}
+
+.page-nav {
+  position: relative;
+  z-index: 2;
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 22px 24px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+}
+
+.nav-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.82rem;
+  letter-spacing: 0.04em;
+  color: var(--white-dim);
+  padding: 9px 18px;
+  border: 1px solid var(--glass-border);
+  border-radius: 100px;
+  background: var(--glass-bg);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  transition: color 0.3s ease, border-color 0.3s ease;
+}
+
+.nav-link:hover {
+  color: var(--white);
+  border-color: rgba(244,167,185,0.45);
+}
+
+.page-main {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  max-width: 960px;
+  margin: 0 auto;
+  padding: 12px 24px 96px;
+  text-align: center;
+}
+
+.page-head .section__title { margin-bottom: 12px; }
+
+/* ---------- Buttons ---------- */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 14px 30px;
+  border-radius: 100px;
+  font-family: var(--font-body);
+  font-size: 0.9rem;
+  font-weight: 500;
+  letter-spacing: 0.04em;
+  transition: transform 0.3s ease, box-shadow 0.3s ease, opacity 0.3s ease;
+}
+
+.btn:hover:not(:disabled) { transform: translateY(-3px); }
+
+.btn--primary {
+  background: linear-gradient(135deg, var(--pink-soft), var(--lavender));
+  color: var(--navy);
+  box-shadow: 0 8px 32px rgba(244,167,185,0.3);
+}
+.btn--primary:hover { box-shadow: 0 16px 48px rgba(244,167,185,0.45); }
+
+.btn--ghost {
+  border: 1.5px solid rgba(244,167,185,0.45);
+  color: var(--white);
+}
+.btn--ghost:hover { border-color: var(--pink-soft); box-shadow: 0 0 32px rgba(244,167,185,0.18); }
+
+/* The crimson button from the reference image */
+.btn--rose {
+  background: linear-gradient(135deg, var(--rose-1), var(--rose-2));
+  color: #fff;
+  font-size: 1.05rem;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  padding: 17px 48px;
+  border: 1px solid rgba(255,255,255,0.14);
+  box-shadow: 0 14px 34px rgba(160,20,60,0.5), 0 0 0 6px rgba(179,42,80,0.12), inset 0 1px 0 rgba(255,255,255,0.25);
+}
+.btn--rose:hover:not(:disabled) { box-shadow: 0 20px 44px rgba(160,20,60,0.6), 0 0 0 8px rgba(179,42,80,0.16), inset 0 1px 0 rgba(255,255,255,0.25); }
+.btn:disabled { opacity: 0.6; cursor: not-allowed; }
+
+.text-link {
+  font-size: 0.85rem;
+  color: var(--white-dim);
+  padding-bottom: 2px;
+  border-bottom: 1px solid rgba(244,167,185,0.35);
+  transition: color 0.3s ease, border-color 0.3s ease;
+}
+.text-link:hover { color: var(--white); border-color: var(--pink-soft); }
+
+/* ============================================================
+   WHEEL
+   ============================================================ */
+.wheel-stage {
+  position: relative;
+  width: min(88vw, 460px);
+  aspect-ratio: 1;
+  margin: 44px auto 0;
+}
+
+.wheel-glow {
+  position: absolute;
+  inset: -9%;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(244,167,185,0.26) 0%, rgba(201,184,232,0.10) 45%, transparent 68%);
+  filter: blur(18px);
+  pointer-events: none;
+}
+
+.wheel-canvas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  box-shadow: 0 26px 70px rgba(0,0,0,0.55);
+  will-change: transform;
+}
+
+.wheel-hub {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 13%;
+  aspect-ratio: 1;
+  transform: translate(-50%, -50%);
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background: linear-gradient(145deg, var(--rose-1), var(--rose-2));
+  border: 4px solid #fff;
+  box-shadow: 0 0 0 3px #9c1239, 0 8px 20px rgba(0,0,0,0.45);
+  color: #fff;
+  font-size: clamp(14px, 3.8vw, 22px);
+  line-height: 1;
+  z-index: 2;
+}
+
+.wheel-pin {
+  position: absolute;
+  top: -4.5%;
+  left: 50%;
+  width: 9%;
+  transform: translateX(-50%);
+  transform-origin: 50% 85%;
+  z-index: 3;
+  filter: drop-shadow(0 4px 6px rgba(0,0,0,0.45));
+}
+
+.wheel-pin.tick { animation: pinTick 0.14s ease-out; }
+
+@keyframes pinTick {
+  0%   { transform: translateX(-50%) rotate(0deg); }
+  40%  { transform: translateX(-50%) rotate(-15deg); }
+  100% { transform: translateX(-50%) rotate(0deg); }
+}
+
+.spin-row {
+  margin-top: 48px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 20px;
+}
+
+/* ---------- Result dialog ---------- */
+.result {
+  margin: auto; /* style.css resets margins, so re-centre the dialog */
+  width: min(92vw, 460px);
+  padding: 0;
+  overflow: visible;
+  color: var(--white);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-xl);
+  background: linear-gradient(160deg, rgba(30,32,58,0.97), rgba(20,22,41,0.97));
+  box-shadow: 0 30px 90px rgba(0,0,0,0.6), 0 0 60px rgba(244,167,185,0.15);
+}
+
+.result::backdrop {
+  background: rgba(13,15,26,0.72);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+}
+
+.result[open] { animation: popIn 0.45s cubic-bezier(0.34, 1.56, 0.64, 1); }
+
+@keyframes popIn {
+  from { opacity: 0; transform: scale(0.9) translateY(12px); }
+  to   { opacity: 1; transform: none; }
+}
+
+.result__inner {
+  position: relative;
+  padding: 44px 32px 34px;
+  text-align: center;
+}
+
+.result__badge {
+  width: 76px;
+  height: 76px;
+  margin: 0 auto 22px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  border: 3px solid rgba(255,255,255,0.9);
+  box-shadow: 0 10px 30px rgba(0,0,0,0.4);
+  font-size: 2rem;
+}
+
+.result__kicker {
+  font-size: 0.82rem;
+  color: var(--pink-soft);
+  letter-spacing: 0.06em;
+  margin-bottom: 8px;
+}
+
+.result__title {
+  font-family: var(--font-display);
+  font-style: italic;
+  font-weight: 400;
+  font-size: clamp(2rem, 8vw, 2.8rem);
+  line-height: 1.15;
+  margin-bottom: 12px;
+}
+
+.result__note {
+  color: var(--white-dim);
+  font-size: 0.95rem;
+  max-width: 320px;
+  margin: 0 auto 30px;
+}
+
+.result__actions {
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+.burst {
+  position: absolute;
+  top: 82px;
+  left: 50%;
+  width: 0;
+  height: 0;
+  pointer-events: none;
+}
+
+.burst-heart {
+  position: absolute;
+  left: 0;
+  top: 0;
+  line-height: 1;
+}
+
+/* ============================================================
+   LOVE LETTER
+   ============================================================ */
+.composer,
+.reader {
+  max-width: 760px;
+  margin: 40px auto 0;
+  text-align: left;
+  scroll-margin-top: 24px;
+}
+
+.paper {
+  position: relative;
+  padding: clamp(26px, 5vw, 52px);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-xl);
+  background: linear-gradient(165deg, rgba(255,255,255,0.075), rgba(255,255,255,0.025));
+  box-shadow: 0 24px 80px rgba(0,0,0,0.45), var(--shadow-glow);
+}
+
+.paper::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 12%; right: 12%;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, var(--pink-soft), var(--lavender), transparent);
+  opacity: 0.6;
+}
+
+.paper input,
+.paper textarea {
+  display: block;
+  width: 100%;
+  background: transparent;
+  border: 0;
+  border-radius: 0;
+  outline: 0;
+  color: var(--white);
+  font-family: inherit;
+}
+
+.paper input::placeholder,
+.paper textarea::placeholder { color: rgba(255,255,255,0.32); }
+
+.in-to {
+  font-family: var(--font-script) !important;
+  font-size: clamp(1.7rem, 4.5vw, 2.1rem);
+  font-weight: 600;
+  color: var(--pink-soft) !important;
+  padding: 0 0 6px;
+  border-bottom: 1px solid rgba(244,167,185,0.18) !important;
+  transition: border-color 0.3s ease;
+}
+.in-to::placeholder { color: rgba(244,167,185,0.4) !important; }
+.in-to:focus { border-bottom-color: var(--pink-soft) !important; }
+
+/* Lined paper: each ruled line equals one line of text */
+.in-body {
+  --lh: 2.3rem;
+  margin: 22px 0 18px;
+  min-height: calc(var(--lh) * 10);
+  padding: 0;
+  resize: none;
+  overflow: hidden;
+  font-family: var(--font-display) !important;
+  font-style: italic;
+  font-weight: 400;
+  font-size: 1.45rem;
+  line-height: var(--lh);
+  caret-color: var(--pink-soft);
+  background-image: repeating-linear-gradient(
+    to bottom,
+    transparent 0,
+    transparent calc(var(--lh) - 1px),
+    rgba(244,167,185,0.14) calc(var(--lh) - 1px),
+    rgba(244,167,185,0.14) var(--lh)
+  );
+  background-attachment: local;
+}
+
+.signoff {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 2px;
+}
+
+.in-closing,
+.in-from {
+  width: min(100%, 18rem) !important;
+  text-align: right;
+  border-bottom: 1px solid transparent !important;
+  transition: border-color 0.3s ease;
+}
+.in-closing:focus,
+.in-from:focus { border-bottom-color: rgba(244,167,185,0.5) !important; }
+
+.in-closing {
+  font-family: var(--font-display) !important;
+  font-style: italic;
+  font-size: 1.25rem;
+  color: var(--white-dim) !important;
+}
+
+.in-from {
+  font-family: var(--font-script) !important;
+  font-size: 1.9rem;
+  font-weight: 600;
+}
+
+.starters { margin-top: 28px; }
+
+.starters__label {
+  font-size: 0.82rem;
+  color: var(--white-dim);
+  margin-bottom: 12px;
+}
+
+.starters__list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.starter {
+  font-size: 0.82rem;
+  color: var(--white);
+  padding: 8px 16px;
+  border-radius: 100px;
+  border: 1px solid rgba(201,184,232,0.3);
+  background: rgba(201,184,232,0.08);
+  transition: border-color 0.3s ease, background 0.3s ease;
+}
+.starter:hover { border-color: var(--lavender); background: rgba(201,184,232,0.16); }
+
+.toolbar {
+  max-width: 760px;
+  margin: 28px auto 0;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  text-align: left;
+}
+
+.toolbar__status {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 16px;
+  font-size: 0.8rem;
+  color: var(--white-dim);
+  min-height: 1.4em;
+}
+
+.toolbar__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.tool {
+  font-size: 0.82rem;
+  color: var(--white);
+  padding: 10px 18px;
+  border-radius: 100px;
+  border: 1px solid var(--glass-border);
+  background: var(--glass-bg);
+  transition: border-color 0.3s ease, background 0.3s ease;
+}
+.tool:hover { border-color: rgba(244,167,185,0.5); }
+
+.tool--main {
+  background: linear-gradient(135deg, var(--pink-soft), var(--lavender));
+  color: var(--navy);
+  border-color: transparent;
+  font-weight: 500;
+}
+
+.tool.armed { border-color: #ff8fa5; color: #ffb3c2; }
+
+/* ---------- Preview (reader) ---------- */
+.read-date {
+  font-size: 0.8rem;
+  letter-spacing: 0.06em;
+  color: var(--white-dim);
+  margin-bottom: 28px;
+}
+
+.read-to {
+  font-family: var(--font-script);
+  font-size: 2.1rem;
+  font-weight: 600;
+  line-height: 1.3;
+  color: var(--pink-soft);
+  margin-bottom: 18px;
+}
+
+.read-body p {
+  font-family: var(--font-display);
+  font-size: 1.4rem;
+  line-height: 1.85;
+  color: rgba(255,255,255,0.92);
+  margin-bottom: 1.1em;
+}
+
+.read-closing {
+  font-family: var(--font-display);
+  font-style: italic;
+  font-size: 1.25rem;
+  text-align: right;
+  color: var(--white-dim);
+  margin-top: 30px;
+}
+
+.read-from {
+  font-family: var(--font-script);
+  font-size: 2rem;
+  font-weight: 600;
+  text-align: right;
+  line-height: 1.3;
+}
+
+.read-beat {
+  display: block;
+  width: 110px;
+  height: auto;
+  margin: 26px 0 0 auto;
+  opacity: 0.8;
+}
+
+.reader.reading .read-line {
+  animation: lineIn 0.8s ease both;
+  animation-delay: calc(var(--i, 0) * 140ms);
+}
+
+@keyframes lineIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to   { opacity: 1; transform: none; }
+}
+
+/* ---------- Add-a-prize dialog ---------- */
+.add-dialog .result__inner { text-align: left; padding: 38px 30px 30px; }
+.add-dialog__title { font-family: var(--font-display); font-style: italic; font-weight: 400; font-size: 2rem; line-height: 1.15; text-align: center; margin-bottom: 6px; }
+.add-dialog__sub { text-align: center; color: var(--white-dim); font-size: 0.88rem; margin-bottom: 22px; }
+.field { display: block; margin-bottom: 14px; }
+.field__label { display: block; font-size: 0.78rem; letter-spacing: 0.04em; color: var(--white-dim); margin-bottom: 6px; }
+.field input[type="text"] {
+  width: 100%; padding: 11px 14px; border-radius: 14px;
+  border: 1px solid var(--glass-border); background: var(--glass-bg);
+  color: var(--white); font: inherit; font-size: 0.95rem; outline: 0;
+  transition: border-color 0.3s ease;
+}
+.field input[type="text"]::placeholder { color: rgba(255,255,255,0.3); }
+.field input[type="text"]:focus { border-color: var(--pink-soft); }
+.field-row { display: grid; grid-template-columns: 90px 1fr; gap: 12px; }
+.field-row .field input { text-align: center; }
+.swatches { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 18px; }
+.swatch { position: relative; }
+.swatch input { position: absolute; opacity: 0; inset: 0; cursor: pointer; }
+.swatch span { display: block; width: 32px; height: 32px; border-radius: 50%; border: 2px solid rgba(255,255,255,0.35); transition: transform 0.2s ease, border-color 0.2s ease; }
+.swatch input:checked + span { border-color: #fff; transform: scale(1.15); box-shadow: 0 0 0 3px rgba(244,167,185,0.35); }
+.swatch input:focus-visible + span { outline: 2px solid var(--pink-soft); outline-offset: 3px; }
+.add-status { min-height: 1.4em; text-align: center; font-size: 0.82rem; color: var(--pink-soft); margin-bottom: 12px; }
+.add-status.error { color: #ffb3c2; }
+.add-form .result__actions { margin-top: 4px; }
+.custom-list { list-style: none; margin-top: 22px; padding-top: 16px; border-top: 1px solid var(--glass-border); }
+.custom-list__title { font-size: 0.78rem; letter-spacing: 0.04em; color: var(--white-dim); margin-bottom: 10px; }
+.custom-list li { display: flex; align-items: center; gap: 10px; padding: 7px 0; font-size: 0.9rem; }
+.custom-list__dot { width: 14px; height: 14px; border-radius: 50%; flex: none; }
+.custom-list__name { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.custom-list__rm { font-size: 0.75rem; color: var(--white-dim); padding: 4px 12px; border: 1px solid var(--glass-border); border-radius: 100px; transition: color 0.3s ease, border-color 0.3s ease; }
+.custom-list__rm:hover { color: #ffb3c2; border-color: #ff8fa5; }
+.custom-empty { font-size: 0.82rem; color: var(--white-dim); }
+
+/* ---------- Responsive ---------- */
+@media (max-width: 560px) {
+  .page-nav { padding: 16px; }
+  .page-main { padding: 8px 16px 80px; }
+  .nav-link { font-size: 0.76rem; padding: 8px 14px; }
+  .in-body { --lh: 2.1rem; font-size: 1.25rem; }
+  .read-body p { font-size: 1.2rem; }
+  .toolbar { flex-direction: column; align-items: stretch; }
+  .toolbar__actions .tool { flex: 1 1 auto; text-align: center; }
+  .result__inner { padding: 38px 22px 28px; }
+  .btn--rose { padding: 16px 40px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .star, .wheel-pin.tick, .result[open], .reader.reading .read-line { animation: none !important; }
+  .fade-in-up { animation: none; opacity: 1; transform: none; }
+}
+
+/* ---------- Print: just the finished letter on white paper ---------- */
+@media print {
+  body.page { background: #fff !important; }
+  .page-bg, .page-stars, .page-nav, .page-head, .composer, .toolbar { display: none !important; }
+  .reader, .reader[hidden] { display: block !important; margin: 0; max-width: none; }
+  .paper { background: none; border: 0; box-shadow: none; padding: 0; }
+  .paper::before, .read-beat { display: none; }
+  .read-date, .read-closing { color: #555; }
+  .read-to, .read-from { color: #9c1239; }
+  .read-body p { color: #111; }
+  .read-line { animation: none !important; opacity: 1 !important; }
+}
+
+</style>
+</head>
+<body class="page">
+
+  <div class="page-bg"></div>
+  <div class="page-stars" id="page-stars" aria-hidden="true"></div>
+
+  <nav class="page-nav">
+    <a class="nav-link" href="index.html#ending">‹ Back to our story</a>
+    <a class="nav-link" href="letter.html">Write a love letter</a>
+  </nav>
+
+  <main class="page-main">
+    <header class="page-head">
+      <span class="section__tag fade-in-up delay-1">A Little Game for Us</span>
+      <h1 class="section__title fade-in-up delay-2">Spin to <em>Win!</em></h1>
+      <p class="section__desc fade-in-up delay-3" id="wheel-count">6 things could happen next</p>
+    </header>
+
+    <div class="wheel-stage fade-in-up delay-4">
+      <div class="wheel-glow" aria-hidden="true"></div>
+      <canvas class="wheel-canvas" id="wheel" role="img" aria-label="Prize wheel"></canvas>
+
+      <!-- Pointer pin -->
+      <svg class="wheel-pin" id="wheel-pin" viewBox="0 0 40 52" aria-hidden="true">
+        <defs>
+          <linearGradient id="pinGrad" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0" stop-color="#b32a50" />
+            <stop offset="1" stop-color="#7d0c2c" />
+          </linearGradient>
+        </defs>
+        <path d="M20 50 C20 50 4 31 4 19 A16 16 0 0 1 36 19 C36 31 20 50 20 50 Z"
+              fill="url(#pinGrad)" stroke="rgba(255,255,255,0.9)" stroke-width="1.6" stroke-linejoin="round" />
+        <circle cx="20" cy="19" r="5.2" fill="#fff" />
+      </svg>
+
+      <!-- Centre hub -->
+      <div class="wheel-hub" aria-hidden="true">♥</div>
+    </div>
+
+    <div class="spin-row fade-in-up delay-5">
+      <button class="btn btn--rose" id="spin-btn" type="button">Spin the Wheel</button>
+      <button class="btn btn--ghost" id="add-open" type="button">＋ Add a prize</button>
+      <a class="text-link" href="letter.html">Skip to the love letter</a>
+    </div>
+  </main>
+
+  <!-- Result -->
+  <dialog class="result" id="result" aria-labelledby="result-title">
+    <div class="result__inner">
+      <div class="burst" id="burst" aria-hidden="true"></div>
+      <div class="result__badge" id="result-badge" aria-hidden="true"></div>
+      <p class="result__kicker">Your spin landed on</p>
+      <h2 class="result__title" id="result-title"></h2>
+      <p class="result__note" id="result-note"></p>
+      <div class="result__actions">
+        <button class="btn btn--ghost" id="spin-again" type="button">Spin again</button>
+        <a class="btn btn--primary" href="letter.html">Write a love letter</a>
+      </div>
+    </div>
+  </dialog>
+
+  <!-- Add a prize -->
+  <dialog class="result add-dialog" id="add-dialog" aria-labelledby="add-title">
+    <form class="result__inner add-form" id="add-form" autocomplete="off">
+      <h2 class="add-dialog__title" id="add-title">Add a prize</h2>
+      <p class="add-dialog__sub">It goes straight onto the wheel. No code needed.</p>
+
+      <div class="field-row">
+        <label class="field">
+          <span class="field__label">Emoji</span>
+          <input type="text" id="add-emoji" maxlength="8" placeholder="🎁" />
+        </label>
+        <label class="field">
+          <span class="field__label">Prize name *</span>
+          <input type="text" id="add-label" maxlength="40" placeholder="e.g. Foot massage" required />
+        </label>
+      </div>
+
+      <label class="field">
+        <span class="field__label">Message shown when it lands (optional)</span>
+        <input type="text" id="add-note" maxlength="140" placeholder="e.g. Redeemable anytime babii" />
+      </label>
+
+      <span class="field__label">Colour</span>
+      <div class="swatches" id="add-swatches" role="radiogroup" aria-label="Slice colour"></div>
+
+      <p class="add-status" id="add-status" role="status" aria-live="polite"></p>
+
+      <div class="result__actions">
+        <button class="btn btn--primary" type="submit">Add to wheel</button>
+        <button class="btn btn--ghost" id="add-close" type="button">Done</button>
+      </div>
+
+      <ul class="custom-list" id="custom-list" aria-label="Prizes you added"></ul>
+    </form>
+  </dialog>
+
+<script>
+/* ============================================================
+   STARS — twinkling background (same look as the ending section)
+   ============================================================ */
+(function initPageStars() {
+  const container = document.getElementById('page-stars');
+  if (!container) return;
+
+  const COUNT = window.innerWidth < 600 ? 45 : 80;
+
+  for (let i = 0; i < COUNT; i++) {
+    const star = document.createElement('div');
+    star.classList.add('star');
+    const size  = Math.random() * 3 + 1;
+    star.style.cssText = `
+      width: ${size}px;
+      height: ${size}px;
+      left: ${Math.random() * 100}%;
+      top: ${Math.random() * 100}%;
+      animation-duration: ${Math.random() * 3 + 2}s;
+      animation-delay: ${Math.random() * 4}s;
+      opacity: ${Math.random() * 0.5 + 0.1};
+    `;
+    container.appendChild(star);
+  }
+})();
+
+/* ============================================================
+   WHEEL PAGE — wheel.js
+   Change what's on the wheel by editing PRIZES below.
+   (3–8 prizes look best. Each one gets an equal slice.)
+   ============================================================ */
+const PRIZES = [
+  { label: 'Tusok Date',           note: 'Fish Ball, Kwek-Kwek sa Angeles? Tara',                               emoji: '🍥', c1: '#ff9db3', c2: '#ff6a89' },
+  { label: 'Dinner anywhere',      note: 'Name the place. We are going.',                                       emoji: '🍽️', c1: '#ffbb5e', c2: '#e98a2d' },
+  { label: 'Cine Date',            note: 'Pick a movie na gusto mo po.',                                        emoji: '🎬', c1: '#fbdc7f', c2: '#dfb24b' },
+  { label: 'A long walk',          note: 'Just us, no phones, no rush.',                                        emoji: '🌿', c1: '#63d3a8', c2: '#3fae88' },
+  { label: 'Go kart',              note: 'Tara babii, new adventure and activity ang gagawin natin',            emoji: '🏴󠁫󠁧󠁧󠁯󠁿', c1: '#79bfff', c2: '#3f9af0' },
+  { label: 'Staycation',           note: 'Pick a date and place kung saan',                                     emoji: '🏠', c1: '#bfa3ff', c2: '#9a78ee' },
+  { label: 'Apartment hunting',    note: 'Pick a date and place kung saan tayo',                                emoji: '🏠', c1: '#bfa3ff', c2: '#9a78ee' },
+  { label: 'Arcade Date',          note: 'Tagal na natin hindi nakakapag-arcade babii, tara?',                  emoji: '🎯', c1: '#bfa3ff', c2: '#9a78ee' },
+  { label: 'Dog Hunting',          note: 'Kuha na ng first dog natin babii para may kasama na si Teban',        emoji: '🎯', c1: '#bfa3ff', c2: '#9a78ee' },
+];
+
+/* ------------------------------------------------------------
+   Custom prizes added with the "＋ Add a prize" button.
+   They are saved in this browser (localStorage), so they stay
+   after a refresh. The prizes above are never touched.
+   ------------------------------------------------------------ */
+const STORE_KEY  = 'monthsary-wheel-custom-prizes-v1';
+const BASE_COUNT = PRIZES.length;
+const MAX_PRIZES = 16;
+const PALETTE = [
+  ['#ff9db3', '#ff6a89'], ['#ffbb5e', '#e98a2d'], ['#fbdc7f', '#dfb24b'],
+  ['#63d3a8', '#3fae88'], ['#79bfff', '#3f9af0'], ['#bfa3ff', '#9a78ee'],
+];
+
+function saveCustom() {
+  try { localStorage.setItem(STORE_KEY, JSON.stringify(PRIZES.slice(BASE_COUNT))); } catch (e) {}
+}
+
+(function loadCustom() {
+  try {
+    const saved = JSON.parse(localStorage.getItem(STORE_KEY) || '[]');
+    if (!Array.isArray(saved)) return;
+    const hex = /^#[0-9a-f]{3,8}$/i;
+    saved.forEach(p => {
+      if (!p || typeof p.label !== 'string' || !p.label.trim() || PRIZES.length >= MAX_PRIZES) return;
+      PRIZES.push({
+        label: p.label.slice(0, 40),
+        note:  String(p.note  || '').slice(0, 140),
+        emoji: String(p.emoji || '🎁').slice(0, 8),
+        c1: hex.test(p.c1) ? p.c1 : PALETTE[0][0],
+        c2: hex.test(p.c2) ? p.c2 : PALETTE[0][1],
+      });
+    });
+  } catch (e) {}
+})();
+
+const TAU = Math.PI * 2;
+const mod = (a, m) => ((a % m) + m) % m;
+const $   = id => document.getElementById(id);
+
+const canvas = $('wheel');
+const ctx    = canvas.getContext('2d');
+const btn    = $('spin-btn');
+const dialog = $('result');
+const pin    = $('wheel-pin');
+
+const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+let rotation = 0;      // current wheel rotation, in degrees (clockwise)
+let spinning = false;
+
+/* ------------------------------------------------------------
+   Drawing
+   ------------------------------------------------------------ */
+function disc(r, fill) {
+  ctx.beginPath();
+  ctx.arc(0, 0, r, 0, TAU);
+  ctx.fillStyle = fill;
+  ctx.fill();
+}
+
+// Fit a label to the available length; fall back to two lines if one line gets too small
+function layoutLabel(text, maxLen, maxFont, minFont) {
+  const fit = lines => {
+    ctx.font = `700 ${maxFont}px "DM Sans", sans-serif`;
+    const widest = Math.max(...lines.map(l => ctx.measureText(l).width));
+    return Math.min(maxFont, maxFont * maxLen / widest);
+  };
+
+  let lines = [text];
+  let size  = fit(lines);
+
+  if (size < maxFont * 0.8 && text.includes(' ')) {
+    const words = text.split(' ');
+    let best = null;
+    for (let i = 1; i < words.length; i++) {
+      const candidate = [words.slice(0, i).join(' '), words.slice(i).join(' ')];
+      const s = fit(candidate);
+      if (!best || s > best.size) best = { lines: candidate, size: s };
+    }
+    if (best && best.size > size * 1.1) {
+      lines = best.lines;
+      size  = Math.min(best.size, maxFont * 0.92);
+    }
+  }
+  return { lines, size: Math.max(size, minFont) };
+}
+
+function draw() {
+  const cssSize = canvas.clientWidth;
+  if (!cssSize) return;
+
+  const dpr = Math.min(window.devicePixelRatio || 1, 3);
+  const px  = Math.round(cssSize * dpr);
+  if (canvas.width !== px) { canvas.width = px; canvas.height = px; }
+
+  const R     = px / 2;
+  const n     = PRIZES.length;
+  const step  = TAU / n;
+  const rSeg  = R * 0.86;
+
+  ctx.clearRect(0, 0, px, px);
+  ctx.save();
+  ctx.translate(R, R);
+
+  // Crimson rim
+  const rim = ctx.createLinearGradient(-R, -R, R, R);
+  rim.addColorStop(0, '#b8294f');
+  rim.addColorStop(1, '#870d30');
+  disc(R, rim);
+
+  // Pale inner ring
+  const ring = ctx.createLinearGradient(-R, -R, R, R);
+  ring.addColorStop(0, '#f7e8ec');
+  ring.addColorStop(1, '#ebd0d8');
+  disc(R * 0.915, ring);
+
+  // Slices (slice 0 starts at 12 o'clock and runs clockwise)
+  for (let i = 0; i < n; i++) {
+    const start = -Math.PI / 2 + i * step;
+    const end   = start + step;
+    const mid   = start + step / 2;
+
+    const g = ctx.createLinearGradient(
+      Math.cos(mid) * rSeg * 0.1, Math.sin(mid) * rSeg * 0.1,
+      Math.cos(mid) * rSeg,       Math.sin(mid) * rSeg
+    );
+    g.addColorStop(0, PRIZES[i].c1);
+    g.addColorStop(1, PRIZES[i].c2);
+
+    ctx.beginPath();
+    ctx.moveTo(0, 0);
+    ctx.arc(0, 0, rSeg, start, end);
+    ctx.closePath();
+    ctx.fillStyle = g;
+    ctx.fill();
+    ctx.lineWidth = Math.max(2, R * 0.012);
+    ctx.strokeStyle = '#fff';
+    ctx.lineJoin = 'round';
+    ctx.stroke();
+  }
+
+  // Labels run along the radius and flip on the left half so they stay readable
+  const textEnd   = rSeg - R * 0.05;
+  const textStart = R * 0.22;
+  const maxLen    = textEnd - textStart;
+  const maxFont   = R * 0.092;
+  const minFont   = R * 0.055;
+
+  for (let i = 0; i < n; i++) {
+    const mid = -Math.PI / 2 + i * step + step / 2;
+    const flip = Math.cos(mid) < -0.001;
+    const { lines, size } = layoutLabel(PRIZES[i].label, maxLen, maxFont, minFont);
+
+    ctx.save();
+    ctx.rotate(mid + (flip ? Math.PI : 0));
+    ctx.font = `700 ${size}px "DM Sans", sans-serif`;
+    ctx.fillStyle = '#fff';
+    ctx.shadowColor = 'rgba(60,0,20,0.28)';
+    ctx.shadowBlur = size * 0.25;
+    ctx.shadowOffsetY = size * 0.06;
+    ctx.textBaseline = 'middle';
+    ctx.textAlign = flip ? 'left' : 'right';
+    const x = flip ? -textEnd : textEnd;
+    const lineH = size * 1.15;
+    lines.forEach((line, k) => {
+      const y = (k - (lines.length - 1) / 2) * lineH;
+      ctx.fillText(line, x, y);
+    });
+    ctx.restore();
+  }
+
+  // Rim studs
+  ctx.fillStyle = 'rgba(255,255,255,0.85)';
+  for (let k = 0; k < n * 2; k++) {
+    const a = -Math.PI / 2 + k * (step / 2);
+    ctx.beginPath();
+    ctx.arc(Math.cos(a) * R * 0.957, Math.sin(a) * R * 0.957, R * 0.013, 0, TAU);
+    ctx.fill();
+  }
+
+  ctx.restore();
+}
+
+/* ------------------------------------------------------------
+   Spinning
+   ------------------------------------------------------------ */
+// Which slice is under the pointer (12 o'clock) at a given rotation?
+function sliceAt(rot) {
+  const step = 360 / PRIZES.length;
+  return Math.floor(mod(-rot, 360) / step);
+}
+
+function tickPin() {
+  pin.classList.remove('tick');
+  void pin.offsetWidth; // restart the animation
+  pin.classList.add('tick');
+}
+
+function spin() {
+  if (spinning) return;
+  spinning = true;
+  btn.disabled = true;
+  $('add-open').disabled = true;
+
+  const n      = PRIZES.length;
+  const step   = 360 / n;
+  const winner = Math.floor(Math.random() * n);
+  const jitter = (Math.random() - 0.5) * step * 0.6; // land somewhere inside the slice, not dead centre
+
+  const wanted = mod(-((winner + 0.5) * step) - jitter, 360);
+  const delta  = mod(wanted - mod(rotation, 360), 360);
+  const turns  = reduceMotion ? 1 : 5 + Math.floor(Math.random() * 3);
+  const total  = delta + turns * 360;
+  const start  = rotation;
+  const dur    = reduceMotion ? 1400 : 5600;
+
+  let t0 = null;
+  let lastSlice = sliceAt(rotation);
+
+  function frame(ts) {
+    if (t0 === null) t0 = ts;
+    const t = Math.min((ts - t0) / dur, 1);
+    const eased = 1 - Math.pow(1 - t, 4); // fast start, long slow finish
+
+    rotation = start + total * eased;
+    canvas.style.transform = `rotate(${rotation}deg)`;
+
+    const s = sliceAt(rotation);
+    if (s !== lastSlice) { lastSlice = s; if (!reduceMotion) tickPin(); }
+
+    if (t < 1) {
+      requestAnimationFrame(frame);
+    } else {
+      spinning = false;
+      btn.disabled = false;
+      $('add-open').disabled = false;
+      btn.textContent = 'Spin again';
+      showResult(sliceAt(rotation));
+    }
+  }
+  requestAnimationFrame(frame);
+}
+
+/* ------------------------------------------------------------
+   Result
+   ------------------------------------------------------------ */
+function showResult(index) {
+  const prize = PRIZES[index];
+  $('result-title').textContent = prize.label;
+  $('result-note').textContent  = prize.note;
+
+  const badge = $('result-badge');
+  badge.textContent = prize.emoji;
+  badge.style.background = `linear-gradient(135deg, ${prize.c1}, ${prize.c2})`;
+
+  if (typeof dialog.showModal === 'function') dialog.showModal();
+  else dialog.setAttribute('open', '');
+
+  burst();
+}
+
+function burst() {
+  if (reduceMotion) return;
+  const layer  = $('burst');
+  const glyphs = ['♥', '♡', '✦'];
+
+  for (let i = 0; i < 22; i++) {
+    const el = document.createElement('span');
+    el.className = 'burst-heart';
+    el.textContent = glyphs[i % glyphs.length];
+    el.style.color = i % 2 ? 'var(--pink-soft)' : 'var(--lavender)';
+    el.style.fontSize = (12 + Math.random() * 16) + 'px';
+    layer.appendChild(el);
+
+    const angle = Math.random() * TAU;
+    const dist  = 90 + Math.random() * 130;
+    const dx = Math.cos(angle) * dist;
+    const dy = Math.sin(angle) * dist - 40;
+
+    el.animate([
+      { transform: 'translate(-50%, -50%) scale(0.4)', opacity: 1 },
+      { transform: `translate(calc(-50% + ${dx}px), calc(-50% + ${dy}px)) scale(1)`, opacity: 0 }
+    ], {
+      duration: 1100 + Math.random() * 700,
+      easing: 'cubic-bezier(0.2, 0.7, 0.3, 1)',
+      fill: 'forwards'
+    }).onfinish = () => el.remove();
+  }
+}
+
+/* ------------------------------------------------------------
+   Wiring
+   ------------------------------------------------------------ */
+btn.addEventListener('click', spin);
+
+$('spin-again').addEventListener('click', () => {
+  dialog.close();
+  setTimeout(spin, 250);
+});
+
+// Click on the dimmed backdrop closes the dialog
+dialog.addEventListener('click', e => { if (e.target === dialog) dialog.close(); });
+
+function refreshMeta() {
+  $('wheel-count').textContent = `${PRIZES.length} things could happen next`;
+  canvas.setAttribute('aria-label', `Prize wheel with ${PRIZES.length} prizes: ${PRIZES.map(p => p.label).join(', ')}`);
+}
+refreshMeta();
+
+/* ------------------------------------------------------------
+   Add-a-prize dialog
+   ------------------------------------------------------------ */
+const addDialog  = $('add-dialog');
+const addForm    = $('add-form');
+const addStatus  = $('add-status');
+const swatchBox  = $('add-swatches');
+const customList = $('custom-list');
+
+function firstGlyph(str) {
+  str = str.trim();
+  if (!str) return '🎁';
+  if (window.Intl && Intl.Segmenter) {
+    return [...new Intl.Segmenter(undefined, { granularity: 'grapheme' }).segment(str)][0].segment;
+  }
+  return Array.from(str)[0];
+}
+
+function say(msg, isError) {
+  addStatus.textContent = msg;
+  addStatus.classList.toggle('error', !!isError);
+}
+
+function buildSwatches() {
+  const next = (PRIZES.length - BASE_COUNT) % PALETTE.length;   // suggest a fresh colour each time
+  swatchBox.innerHTML = '';
+  PALETTE.forEach(([c1, c2], i) => {
+    const wrap = document.createElement('label');
+    wrap.className = 'swatch';
+    wrap.innerHTML = `<input type="radio" name="add-color" value="${i}" aria-label="Colour ${i + 1}"${i === next ? ' checked' : ''}><span style="background:linear-gradient(135deg,${c1},${c2})"></span>`;
+    swatchBox.appendChild(wrap);
+  });
+}
+
+function renderCustomList() {
+  customList.innerHTML = '';
+  const custom = PRIZES.slice(BASE_COUNT);
+  if (!custom.length) { customList.hidden = true; return; }
+  customList.hidden = false;
+
+  const head = document.createElement('li');
+  head.className = 'custom-list__title';
+  head.textContent = 'Prizes you added';
+  customList.appendChild(head);
+
+  custom.forEach((p, i) => {
+    const li = document.createElement('li');
+    const dot = document.createElement('span');
+    dot.className = 'custom-list__dot';
+    dot.style.background = `linear-gradient(135deg, ${p.c1}, ${p.c2})`;
+    const name = document.createElement('span');
+    name.className = 'custom-list__name';
+    name.textContent = `${p.emoji} ${p.label}`;
+    const rm = document.createElement('button');
+    rm.type = 'button';
+    rm.className = 'custom-list__rm';
+    rm.textContent = 'Remove';
+    rm.setAttribute('aria-label', `Remove ${p.label}`);
+    rm.addEventListener('click', () => {
+      if (spinning) return;
+      PRIZES.splice(BASE_COUNT + i, 1);
+      saveCustom(); renderCustomList(); buildSwatches(); refreshMeta(); draw();
+      say(`Removed. ${PRIZES.length} prizes on the wheel.`);
+    });
+    li.append(dot, name, rm);
+    customList.appendChild(li);
+  });
+}
+
+function openAdd() {
+  if (spinning) return;
+  addForm.reset();
+  say('');
+  buildSwatches();
+  renderCustomList();
+  if (typeof addDialog.showModal === 'function') addDialog.showModal();
+  else addDialog.setAttribute('open', '');
+  $('add-label').focus();
+}
+
+addForm.addEventListener('submit', e => {
+  e.preventDefault();
+  if (spinning) return;
+
+  const label = $('add-label').value.trim();
+  if (!label) { say('Please type a prize name.', true); $('add-label').focus(); return; }
+  if (PRIZES.length >= MAX_PRIZES) { say(`The wheel is full (${MAX_PRIZES} max). Remove one first.`, true); return; }
+
+  const pick = addForm.querySelector('input[name="add-color"]:checked');
+  const [c1, c2] = PALETTE[pick ? +pick.value : 0];
+
+  PRIZES.push({
+    label,
+    note:  $('add-note').value.trim() || 'A little surprise, just for us 💗',
+    emoji: firstGlyph($('add-emoji').value),
+    c1, c2,
+  });
+
+  saveCustom();
+  refreshMeta();
+  draw();
+  renderCustomList();
+
+  addForm.reset();
+  buildSwatches();
+  say(`"${label}" added. ${PRIZES.length} prizes on the wheel.`);
+  $('add-label').focus();
+});
+
+$('add-open').addEventListener('click', openAdd);
+$('add-close').addEventListener('click', () => addDialog.close());
+addDialog.addEventListener('click', e => { if (e.target === addDialog) addDialog.close(); });
+
+let resizeFrame = null;
+window.addEventListener('resize', () => {
+  cancelAnimationFrame(resizeFrame);
+  resizeFrame = requestAnimationFrame(draw);
+});
+
+draw();
+if (document.fonts && document.fonts.load) {
+  document.fonts.load('700 20px "DM Sans"').then(draw).catch(() => {});
+}
+
+</script>
+</body>
+</html>

@@ -1,0 +1,475 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Write a Love Letter — Our Monthsary</title>
+  <link rel="stylesheet" href="style.css" />
+  <style>
+/* ============================================================
+   WHEEL + LETTER PAGES — shared page shell, buttons, wheel, dialog
+   (used by wheel.html and letter.html; reuses the tokens above)
+   ============================================================ */
+
+:root {
+  --rose-1: #b32a50;   /* wheel rim + button, from the reference image */
+  --rose-2: #8a0f31;
+  --rose-ink: #f3dfe4;
+}
+
+:focus-visible {
+  outline: 2px solid var(--pink-soft);
+  outline-offset: 3px;
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px; height: 1px;
+  padding: 0; margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* ---------- Page shell (same navy + glows as the home page) ---------- */
+body.page {
+  min-height: 100dvh;
+  background: var(--navy);
+}
+
+.page-bg {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background:
+    radial-gradient(ellipse 80% 60% at 50% 18%, rgba(244,167,185,0.12) 0%, transparent 70%),
+    radial-gradient(ellipse 60% 50% at 82% 78%, rgba(201,184,232,0.10) 0%, transparent 60%),
+    radial-gradient(ellipse 90% 70% at 50% 50%, rgba(201,184,232,0.06) 0%, transparent 70%),
+    var(--navy);
+}
+
+.page-nav {
+  position: relative;
+  z-index: 2;
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 22px 24px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+}
+
+.nav-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.82rem;
+  letter-spacing: 0.04em;
+  color: var(--white-dim);
+  padding: 9px 18px;
+  border: 1px solid var(--glass-border);
+  border-radius: 100px;
+  background: var(--glass-bg);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  transition: color 0.3s ease, border-color 0.3s ease;
+}
+
+.nav-link:hover {
+  color: var(--white);
+  border-color: rgba(244,167,185,0.45);
+}
+
+.page-main {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  max-width: 960px;
+  margin: 0 auto;
+  padding: 12px 24px 96px;
+  text-align: center;
+}
+
+.page-head .section__title { margin-bottom: 12px; }
+
+/* ---------- Buttons ---------- */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 14px 30px;
+  border-radius: 100px;
+  font-family: var(--font-body);
+  font-size: 0.9rem;
+  font-weight: 500;
+  letter-spacing: 0.04em;
+  transition: transform 0.3s ease, box-shadow 0.3s ease, opacity 0.3s ease;
+}
+
+.btn:hover:not(:disabled) { transform: translateY(-3px); }
+
+.btn--primary {
+  background: linear-gradient(135deg, var(--pink-soft), var(--lavender));
+  color: var(--navy);
+  box-shadow: 0 8px 32px rgba(244,167,185,0.3);
+}
+.btn--primary:hover { box-shadow: 0 16px 48px rgba(244,167,185,0.45); }
+
+.btn--ghost {
+  border: 1.5px solid rgba(244,167,185,0.45);
+  color: var(--white);
+}
+.btn--ghost:hover { border-color: var(--pink-soft); box-shadow: 0 0 32px rgba(244,167,185,0.18); }
+
+/* The crimson button from the reference image */
+.btn--rose {
+  background: linear-gradient(135deg, var(--rose-1), var(--rose-2));
+  color: #fff;
+  font-size: 1.05rem;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  padding: 17px 48px;
+  border: 1px solid rgba(255,255,255,0.14);
+  box-shadow: 0 14px 34px rgba(160,20,60,0.5), 0 0 0 6px rgba(179,42,80,0.12), inset 0 1px 0 rgba(255,255,255,0.25);
+}
+.btn--rose:hover:not(:disabled) { box-shadow: 0 20px 44px rgba(160,20,60,0.6), 0 0 0 8px rgba(179,42,80,0.16), inset 0 1px 0 rgba(255,255,255,0.25); }
+.btn:disabled { opacity: 0.6; cursor: not-allowed; }
+
+.text-link {
+  font-size: 0.85rem;
+  color: var(--white-dim);
+  padding-bottom: 2px;
+  border-bottom: 1px solid rgba(244,167,185,0.35);
+  transition: color 0.3s ease, border-color 0.3s ease;
+}
+.text-link:hover { color: var(--white); border-color: var(--pink-soft); }
+
+/* ============================================================
+   LETTER WRITER PAGE — reuses the "A Letter Just for You" card
+   ============================================================ */
+.writer {
+  max-width: 720px;
+  margin: 40px auto 0;
+  text-align: left;
+  scroll-margin-top: 24px;
+}
+
+.writer .letter-card__inner { text-align: center; }
+.writer .letter-card__deco  { margin-bottom: 20px; }
+
+.writer input,
+.writer textarea {
+  display: block;
+  width: 100%;
+  background: transparent;
+  border: 0;
+  border-radius: 0;
+  outline: 0;
+  color: inherit;
+  font-family: inherit;
+  text-align: center;
+}
+
+.writer input::placeholder,
+.writer textarea::placeholder { color: rgba(255,255,255,0.3); }
+
+.writer .in-to {
+  font-family: var(--font-script);
+  font-size: 1.8rem;
+  color: var(--pink-soft);
+  padding-bottom: 6px;
+  margin-bottom: 18px;
+  border-bottom: 1px solid rgba(244,167,185,0.18);
+  transition: border-color 0.3s ease;
+}
+.writer .in-to::placeholder { color: rgba(244,167,185,0.4); }
+.writer .in-to:focus { border-bottom-color: var(--pink-soft); }
+
+.writer .in-body {
+  min-height: 14rem;
+  resize: none;
+  overflow: hidden;
+  font-family: var(--font-display);
+  font-style: italic;
+  font-size: 1.15rem;
+  line-height: 2;
+  color: rgba(255,255,255,0.82);
+  caret-color: var(--pink-soft);
+}
+
+.writer .in-closing,
+.writer .in-from {
+  border-bottom: 1px solid transparent;
+  transition: border-color 0.3s ease;
+}
+.writer .in-closing:focus,
+.writer .in-from:focus { border-bottom-color: rgba(244,167,185,0.5); }
+
+.writer .in-closing {
+  font-family: var(--font-script);
+  font-size: 1.4rem;
+  color: var(--white-dim);
+  margin-top: 32px;
+}
+
+.writer .in-from {
+  font-family: var(--font-script);
+  font-size: 1.6rem;
+  color: var(--white);
+  margin-top: 2px;
+}
+
+/* Preview */
+.read-date {
+  font-size: 0.8rem;
+  letter-spacing: 0.06em;
+  color: var(--white-dim);
+  margin-bottom: 18px;
+}
+.read-text { white-space: pre-wrap; text-align: center; cursor: pointer; }
+.read-sign { white-space: pre-line; }
+
+/* Starters + toolbar */
+.starters { margin-top: 28px; }
+
+.starters__label {
+  font-size: 0.82rem;
+  color: var(--white-dim);
+  margin-bottom: 12px;
+}
+
+.starters__list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.starter {
+  font-size: 0.82rem;
+  color: var(--white);
+  padding: 8px 16px;
+  border-radius: 100px;
+  border: 1px solid rgba(201,184,232,0.3);
+  background: rgba(201,184,232,0.08);
+  transition: border-color 0.3s ease, background 0.3s ease;
+}
+.starter:hover { border-color: var(--lavender); background: rgba(201,184,232,0.16); }
+
+.toolbar {
+  max-width: 720px;
+  margin: 28px auto 0;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  text-align: left;
+}
+
+.toolbar__status {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 16px;
+  font-size: 0.8rem;
+  color: var(--white-dim);
+  min-height: 1.4em;
+}
+
+.toolbar__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.tool {
+  font-size: 0.82rem;
+  color: var(--white);
+  padding: 10px 18px;
+  border-radius: 100px;
+  border: 1px solid var(--glass-border);
+  background: var(--glass-bg);
+  transition: border-color 0.3s ease, background 0.3s ease;
+}
+.tool:hover { border-color: rgba(244,167,185,0.5); }
+
+.tool--main {
+  background: linear-gradient(135deg, var(--pink-soft), var(--lavender));
+  color: var(--navy);
+  border-color: transparent;
+  font-weight: 500;
+}
+
+.tool.armed { border-color: #ff8fa5; color: #ffb3c2; }
+
+/* ---------- Responsive ---------- */
+@media (max-width: 560px) {
+  .page-nav { padding: 16px; }
+  .page-main { padding: 8px 16px 80px; }
+  .nav-link { font-size: 0.76rem; padding: 8px 14px; }
+  .writer .letter-card__inner { padding: 32px 20px; }
+  .writer .in-to { font-size: 1.5rem; }
+  .writer .in-body { font-size: 1rem; }
+  .toolbar { flex-direction: column; align-items: stretch; }
+  .toolbar__actions .tool { flex: 1 1 auto; text-align: center; }
+  .result__inner { padding: 38px 22px 28px; }
+  .btn--rose { padding: 16px 40px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .wheel-pin.tick, .result[open] { animation: none !important; }
+}
+
+/* ---------- Download menu ---------- */
+.menu-wrap { position: relative; }
+.menu {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  z-index: 20;
+  min-width: 230px;
+  padding: 6px;
+  border: 1px solid var(--glass-border);
+  border-radius: 16px;
+  background: rgba(20,22,41,0.98);
+  box-shadow: 0 18px 50px rgba(0,0,0,0.55);
+}
+.menu__item {
+  display: block;
+  width: 100%;
+  text-align: left;
+  padding: 10px 14px;
+  border-radius: 12px;
+  font-size: 0.85rem;
+  color: var(--white);
+}
+.menu__item small { display: block; font-size: 0.72rem; color: var(--white-dim); }
+.menu__item:hover { background: rgba(244,167,185,0.12); }
+@media (max-width: 560px) { .menu-wrap { flex: 1 1 auto; } .menu-wrap .tool { width: 100%; } .menu { left: 0; right: 0; } }
+
+/* ---------- Print: the letter card exactly as it looks on the site ---------- */
+@page { margin: 0; }
+@media print {
+  html, body.page {
+    background: #0d0f1a !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+  body.page * { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  #particles-canvas, .page-bg, .page-nav, .page-head, #composer, .toolbar { display: none !important; }
+  .page-main { padding: 16mm 12mm; }
+  #reader, #reader[hidden] { display: block !important; margin: 0 auto; }
+  .letter-card__glow { display: none; }
+  .letter-card__inner { background: #0e1020; backdrop-filter: none; -webkit-backdrop-filter: none; }
+  .read-text::after { display: none; }
+  .heartbeat-svg { animation: none; opacity: 1; }
+}
+  </style>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=DM+Sans:wght@300;400;500;600;700&family=Dancing+Script:wght@600;700&display=swap" rel="stylesheet" />
+</head>
+<body class="page">
+
+  <div class="page-bg"></div>
+  <canvas id="particles-canvas"></canvas>
+
+  <nav class="page-nav">
+    <a class="nav-link" href="wheel.html">‹ Back to the wheel</a>
+    <a class="nav-link" href="index.html">Home</a>
+  </nav>
+
+  <main class="page-main">
+    <header class="page-head">
+      <span class="section__tag fade-in-up delay-1">From My Heart</span>
+      <h1 class="section__title fade-in-up delay-2">A Letter <em>Just for You</em></h1>
+      <p class="section__desc fade-in-up delay-3">Take your time. What you write is saved on this device as you type.</p>
+    </header>
+
+    <!-- Editor: same card as "A Letter Just for You" -->
+    <section class="writer fade-in-up delay-4" id="composer" aria-label="Letter editor">
+      <div class="letter-card">
+        <div class="letter-card__glow"></div>
+        <div class="letter-card__inner">
+          <div class="letter-card__deco">✦</div>
+
+          <label class="sr-only" for="to">Greeting</label>
+          <input class="in-to" id="to" type="text" maxlength="80" placeholder="Hi babyyyy," autocomplete="off" />
+
+          <label class="sr-only" for="body">Your letter</label>
+          <textarea class="in-body" id="body" placeholder="Start with the moment you knew…" spellcheck="true"></textarea>
+
+          <label class="sr-only" for="closing">Closing line</label>
+          <input class="in-closing" id="closing" type="text" maxlength="60" value="— Forever yours 🤍" autocomplete="off" />
+          <label class="sr-only" for="from">Your name</label>
+          <input class="in-from" id="from" type="text" maxlength="60" placeholder="Your name" autocomplete="off" />
+
+          <div class="letter-card__heartbeat">
+            <svg viewBox="0 0 100 40" class="heartbeat-svg" aria-hidden="true">
+              <polyline points="0,20 15,20 20,5 25,35 32,5 38,35 43,20 50,20 55,5 60,35 65,20 100,20"
+                fill="none" stroke="var(--pink-soft)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </div>
+        </div>
+      </div>
+
+      <div class="starters">
+        <p class="starters__label">Not sure how to begin? Tap a starter.</p>
+        <div class="starters__list">
+          <button class="starter" type="button" data-text="I still think about the day we">I still think about the day we…</button>
+          <button class="starter" type="button" data-text="My favorite thing about you is">My favorite thing about you is…</button>
+          <button class="starter" type="button" data-text="You make ordinary days feel">You make ordinary days feel…</button>
+          <button class="starter" type="button" data-text="Something I don't say enough is">Something I don't say enough is…</button>
+          <button class="starter" type="button" data-text="I can't wait for us to">I can't wait for us to…</button>
+          <button class="starter" type="button" data-text="Thank you for">Thank you for…</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- Preview: types out like the home page letter -->
+    <section class="writer" id="reader" hidden tabindex="-1" aria-label="Letter preview">
+      <div class="letter-card">
+        <div class="letter-card__glow"></div>
+        <div class="letter-card__inner">
+          <div class="letter-card__deco">✦</div>
+          <p class="letter-card__salutation" id="read-to"></p>
+          <p class="letter-text read-text" id="read-text"></p>
+          <p class="letter-card__sign read-sign" id="read-sign"></p>
+          <div class="letter-card__heartbeat">
+            <svg viewBox="0 0 100 40" class="heartbeat-svg" aria-hidden="true">
+              <polyline points="0,20 15,20 20,5 25,35 32,5 38,35 43,20 50,20 55,5 60,35 65,20 100,20"
+                fill="none" stroke="var(--pink-soft)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Actions -->
+    <div class="toolbar">
+      <div class="toolbar__status">
+        <span id="count">0 words</span>
+        <span id="status" role="status" aria-live="polite"></span>
+      </div>
+      <div class="toolbar__actions">
+        <button class="tool tool--main" id="btn-preview" type="button">Preview letter</button>
+        <button class="tool" id="btn-copy" type="button">Copy</button>
+        <div class="menu-wrap">
+          <button class="tool" id="btn-download" type="button" aria-haspopup="true" aria-expanded="false" aria-controls="download-menu">Download ▾</button>
+          <div class="menu" id="download-menu" role="menu" hidden>
+            <button class="menu__item" id="dl-image" role="menuitem" type="button">Image (PNG)<small>Looks just like the website</small></button>
+            <button class="menu__item" id="dl-text" role="menuitem" type="button">Text (.txt)<small>Plain words only</small></button>
+          </div>
+        </div>
+        <button class="tool" id="btn-print" type="button">Print</button>
+        <button class="tool" id="btn-clear" type="button">Clear</button>
+      </div>
+    </div>
+  </main>
+
+  <script src="script.js"></script>
+</body>
+</html>
