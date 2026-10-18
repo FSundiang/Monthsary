@@ -1,6 +1,790 @@
 /* ============================================================
-   MONTHSARY LANDING PAGE — script.js
+   MONTHSARY — script.js  (home page + wheel.html + letter.html)
    ============================================================ */
+
+/* ============================================================
+   WHEEL PAGE (wheel.html)
+   Change what's on the wheel by editing PRIZES below.
+   (3–8 prizes look best. Each one gets an equal slice.)
+   ============================================================ */
+(function initWheelPage() {
+  if (!document.getElementById('wheel')) return;
+
+const PRIZES = [
+  { label: 'Movie night, my pick', note: 'Blankets, snacks, and a film just for us.',   emoji: '🎬', c1: '#ff9db3', c2: '#ff6a89' },
+  { label: 'Dinner anywhere',      note: 'Name the place. We are going.',               emoji: '🍽️', c1: '#ffbb5e', c2: '#e98a2d' },
+  { label: 'Breakfast in bed',     note: 'Stay under the covers. Breakfast comes to you.', emoji: '🥞', c1: '#fbdc7f', c2: '#dfb24b' },
+  { label: 'A long walk',          note: 'Just us, no phones, no rush.',                emoji: '🌿', c1: '#63d3a8', c2: '#3fae88' },
+  { label: 'One free kiss',        note: 'Redeemable anytime. Starting now.',           emoji: '💋', c1: '#79bfff', c2: '#3f9af0' },
+  { label: 'I do the dishes',      note: 'Tonight, the sink is all mine.',              emoji: '🧽', c1: '#bfa3ff', c2: '#9a78ee' },
+];
+
+const TAU = Math.PI * 2;
+const mod = (a, m) => ((a % m) + m) % m;
+const $   = id => document.getElementById(id);
+
+const canvas = $('wheel');
+const ctx    = canvas.getContext('2d');
+const btn    = $('spin-btn');
+const dialog = $('result');
+const pin    = $('wheel-pin');
+
+const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+let rotation = 0;      // current wheel rotation, in degrees (clockwise)
+let spinning = false;
+
+/* ------------------------------------------------------------
+   Drawing
+   ------------------------------------------------------------ */
+function disc(r, fill) {
+  ctx.beginPath();
+  ctx.arc(0, 0, r, 0, TAU);
+  ctx.fillStyle = fill;
+  ctx.fill();
+}
+
+// Fit a label to the available length; fall back to two lines if one line gets too small
+function layoutLabel(text, maxLen, maxFont, minFont) {
+  const fit = lines => {
+    ctx.font = `700 ${maxFont}px "DM Sans", sans-serif`;
+    const widest = Math.max(...lines.map(l => ctx.measureText(l).width));
+    return Math.min(maxFont, maxFont * maxLen / widest);
+  };
+
+  let lines = [text];
+  let size  = fit(lines);
+
+  if (size < maxFont * 0.8 && text.includes(' ')) {
+    const words = text.split(' ');
+    let best = null;
+    for (let i = 1; i < words.length; i++) {
+      const candidate = [words.slice(0, i).join(' '), words.slice(i).join(' ')];
+      const s = fit(candidate);
+      if (!best || s > best.size) best = { lines: candidate, size: s };
+    }
+    if (best && best.size > size * 1.1) {
+      lines = best.lines;
+      size  = Math.min(best.size, maxFont * 0.92);
+    }
+  }
+  return { lines, size: Math.max(size, minFont) };
+}
+
+function draw() {
+  const cssSize = canvas.clientWidth;
+  if (!cssSize) return;
+
+  const dpr = Math.min(window.devicePixelRatio || 1, 3);
+  const px  = Math.round(cssSize * dpr);
+  if (canvas.width !== px) { canvas.width = px; canvas.height = px; }
+
+  const R     = px / 2;
+  const n     = PRIZES.length;
+  const step  = TAU / n;
+  const rSeg  = R * 0.86;
+
+  ctx.clearRect(0, 0, px, px);
+  ctx.save();
+  ctx.translate(R, R);
+
+  // Crimson rim
+  const rim = ctx.createLinearGradient(-R, -R, R, R);
+  rim.addColorStop(0, '#b8294f');
+  rim.addColorStop(1, '#870d30');
+  disc(R, rim);
+
+  // Pale inner ring
+  const ring = ctx.createLinearGradient(-R, -R, R, R);
+  ring.addColorStop(0, '#f7e8ec');
+  ring.addColorStop(1, '#ebd0d8');
+  disc(R * 0.915, ring);
+
+  // Slices (slice 0 starts at 12 o'clock and runs clockwise)
+  for (let i = 0; i < n; i++) {
+    const start = -Math.PI / 2 + i * step;
+    const end   = start + step;
+    const mid   = start + step / 2;
+
+    const g = ctx.createLinearGradient(
+      Math.cos(mid) * rSeg * 0.1, Math.sin(mid) * rSeg * 0.1,
+      Math.cos(mid) * rSeg,       Math.sin(mid) * rSeg
+    );
+    g.addColorStop(0, PRIZES[i].c1);
+    g.addColorStop(1, PRIZES[i].c2);
+
+    ctx.beginPath();
+    ctx.moveTo(0, 0);
+    ctx.arc(0, 0, rSeg, start, end);
+    ctx.closePath();
+    ctx.fillStyle = g;
+    ctx.fill();
+    ctx.lineWidth = Math.max(2, R * 0.012);
+    ctx.strokeStyle = '#fff';
+    ctx.lineJoin = 'round';
+    ctx.stroke();
+  }
+
+  // Labels run along the radius and flip on the left half so they stay readable
+  const textEnd   = rSeg - R * 0.05;
+  const textStart = R * 0.22;
+  const maxLen    = textEnd - textStart;
+  const maxFont   = R * 0.092;
+  const minFont   = R * 0.055;
+
+  for (let i = 0; i < n; i++) {
+    const mid = -Math.PI / 2 + i * step + step / 2;
+    const flip = Math.cos(mid) < -0.001;
+    const { lines, size } = layoutLabel(PRIZES[i].label, maxLen, maxFont, minFont);
+
+    ctx.save();
+    ctx.rotate(mid + (flip ? Math.PI : 0));
+    ctx.font = `700 ${size}px "DM Sans", sans-serif`;
+    ctx.fillStyle = '#fff';
+    ctx.shadowColor = 'rgba(60,0,20,0.28)';
+    ctx.shadowBlur = size * 0.25;
+    ctx.shadowOffsetY = size * 0.06;
+    ctx.textBaseline = 'middle';
+    ctx.textAlign = flip ? 'left' : 'right';
+    const x = flip ? -textEnd : textEnd;
+    const lineH = size * 1.15;
+    lines.forEach((line, k) => {
+      const y = (k - (lines.length - 1) / 2) * lineH;
+      ctx.fillText(line, x, y);
+    });
+    ctx.restore();
+  }
+
+  // Rim studs
+  ctx.fillStyle = 'rgba(255,255,255,0.85)';
+  for (let k = 0; k < n * 2; k++) {
+    const a = -Math.PI / 2 + k * (step / 2);
+    ctx.beginPath();
+    ctx.arc(Math.cos(a) * R * 0.957, Math.sin(a) * R * 0.957, R * 0.013, 0, TAU);
+    ctx.fill();
+  }
+
+  ctx.restore();
+}
+
+/* ------------------------------------------------------------
+   Spinning
+   ------------------------------------------------------------ */
+// Which slice is under the pointer (12 o'clock) at a given rotation?
+function sliceAt(rot) {
+  const step = 360 / PRIZES.length;
+  return Math.floor(mod(-rot, 360) / step);
+}
+
+function tickPin() {
+  pin.classList.remove('tick');
+  void pin.offsetWidth; // restart the animation
+  pin.classList.add('tick');
+}
+
+function spin() {
+  if (spinning) return;
+  spinning = true;
+  btn.disabled = true;
+
+  const n      = PRIZES.length;
+  const step   = 360 / n;
+  const winner = Math.floor(Math.random() * n);
+  const jitter = (Math.random() - 0.5) * step * 0.6; // land somewhere inside the slice, not dead centre
+
+  const wanted = mod(-((winner + 0.5) * step) - jitter, 360);
+  const delta  = mod(wanted - mod(rotation, 360), 360);
+  const turns  = reduceMotion ? 1 : 5 + Math.floor(Math.random() * 3);
+  const total  = delta + turns * 360;
+  const start  = rotation;
+  const dur    = reduceMotion ? 1400 : 5600;
+
+  let t0 = null;
+  let lastSlice = sliceAt(rotation);
+
+  function frame(ts) {
+    if (t0 === null) t0 = ts;
+    const t = Math.min((ts - t0) / dur, 1);
+    const eased = 1 - Math.pow(1 - t, 4); // fast start, long slow finish
+
+    rotation = start + total * eased;
+    canvas.style.transform = `rotate(${rotation}deg)`;
+
+    const s = sliceAt(rotation);
+    if (s !== lastSlice) { lastSlice = s; if (!reduceMotion) tickPin(); }
+
+    if (t < 1) {
+      requestAnimationFrame(frame);
+    } else {
+      spinning = false;
+      btn.disabled = false;
+      btn.textContent = 'Spin again';
+      showResult(sliceAt(rotation));
+    }
+  }
+  requestAnimationFrame(frame);
+}
+
+/* ------------------------------------------------------------
+   Result
+   ------------------------------------------------------------ */
+function showResult(index) {
+  const prize = PRIZES[index];
+  $('result-title').textContent = prize.label;
+  $('result-note').textContent  = prize.note;
+
+  const badge = $('result-badge');
+  badge.textContent = prize.emoji;
+  badge.style.background = `linear-gradient(135deg, ${prize.c1}, ${prize.c2})`;
+
+  if (typeof dialog.showModal === 'function') dialog.showModal();
+  else dialog.setAttribute('open', '');
+
+  burst();
+}
+
+function burst() {
+  if (reduceMotion) return;
+  const layer  = $('burst');
+  const glyphs = ['♥', '♡', '✦'];
+
+  for (let i = 0; i < 22; i++) {
+    const el = document.createElement('span');
+    el.className = 'burst-heart';
+    el.textContent = glyphs[i % glyphs.length];
+    el.style.color = i % 2 ? 'var(--pink-soft)' : 'var(--lavender)';
+    el.style.fontSize = (12 + Math.random() * 16) + 'px';
+    layer.appendChild(el);
+
+    const angle = Math.random() * TAU;
+    const dist  = 90 + Math.random() * 130;
+    const dx = Math.cos(angle) * dist;
+    const dy = Math.sin(angle) * dist - 40;
+
+    el.animate([
+      { transform: 'translate(-50%, -50%) scale(0.4)', opacity: 1 },
+      { transform: `translate(calc(-50% + ${dx}px), calc(-50% + ${dy}px)) scale(1)`, opacity: 0 }
+    ], {
+      duration: 1100 + Math.random() * 700,
+      easing: 'cubic-bezier(0.2, 0.7, 0.3, 1)',
+      fill: 'forwards'
+    }).onfinish = () => el.remove();
+  }
+}
+
+/* ------------------------------------------------------------
+   Wiring
+   ------------------------------------------------------------ */
+btn.addEventListener('click', spin);
+
+$('spin-again').addEventListener('click', () => {
+  dialog.close();
+  setTimeout(spin, 250);
+});
+
+// Click on the dimmed backdrop closes the dialog
+dialog.addEventListener('click', e => { if (e.target === dialog) dialog.close(); });
+
+$('wheel-count').textContent = `${PRIZES.length} things could happen next`;
+canvas.setAttribute('aria-label', `Prize wheel with ${PRIZES.length} prizes: ${PRIZES.map(p => p.label).join(', ')}`);
+
+let resizeFrame = null;
+window.addEventListener('resize', () => {
+  cancelAnimationFrame(resizeFrame);
+  resizeFrame = requestAnimationFrame(draw);
+});
+
+draw();
+if (document.fonts && document.fonts.load) {
+  document.fonts.load('700 20px "DM Sans"').then(draw).catch(() => {});
+}
+
+})();
+
+/* ============================================================
+   LETTER WRITER PAGE (letter.html)
+   Autosaves to this browser, previews with the same typewriter
+   effect as "A Letter Just for You", copies, downloads, prints.
+   ============================================================ */
+(function initLetterWriter() {
+  if (!document.getElementById('composer')) return;
+
+  const KEY = 'monthsary.loveLetter.v1';
+  const DEFAULT_CLOSING = '— Forever yours 🤍';
+  const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  const $ = id => document.getElementById(id);
+  const els = { to: $('to'), body: $('body'), closing: $('closing'), from: $('from') };
+  const countEl    = $('count');
+  const statusEl   = $('status');
+  const composer   = $('composer');
+  const reader     = $('reader');
+  const readText   = $('read-text');
+  const previewBtn = $('btn-preview');
+  const clearBtn   = $('btn-clear');
+
+  let previewing  = false;
+  let baseStatus  = '';
+  let saveTimer   = null;
+  let statusTimer = null;
+  let clearTimer  = null;
+  let typeTimer   = null;
+
+  /* ── Status line ── */
+  function setStatus(msg) {
+    statusEl.textContent = msg;
+    clearTimeout(statusTimer);
+    statusTimer = setTimeout(() => { statusEl.textContent = baseStatus; }, 3000);
+  }
+
+  /* ── Storage ── */
+  function load() {
+    try {
+      const raw = localStorage.getItem(KEY);
+      if (!raw) return;
+      const d = JSON.parse(raw);
+      els.to.value      = d.to   || '';
+      els.body.value    = d.body || '';
+      els.from.value    = d.from || '';
+      els.closing.value = typeof d.closing === 'string' ? d.closing : DEFAULT_CLOSING;
+      baseStatus = 'Saved on this device';
+      statusEl.textContent = baseStatus;
+    } catch (e) { /* storage unavailable: the editor still works */ }
+  }
+
+  function queueSave() {
+    clearTimeout(saveTimer);
+    saveTimer = setTimeout(() => {
+      try {
+        localStorage.setItem(KEY, JSON.stringify({
+          to: els.to.value, body: els.body.value,
+          closing: els.closing.value, from: els.from.value
+        }));
+        baseStatus = 'Saved on this device';
+      } catch (e) {
+        baseStatus = 'Couldn’t save in this browser. Copy or download to keep your letter.';
+      }
+      statusEl.textContent = baseStatus;
+    }, 400);
+  }
+
+  /* ── Editor helpers ── */
+  function grow() {
+    const b = els.body;
+    b.style.height = 'auto';
+    b.style.height = b.scrollHeight + 'px';
+  }
+
+  function updateCount() {
+    const words = els.body.value.trim().split(/\s+/).filter(Boolean).length;
+    countEl.textContent = `${words} ${words === 1 ? 'word' : 'words'}`;
+  }
+
+  function onInput() {
+    grow();
+    updateCount();
+    queueSave();
+  }
+
+  function signText() {
+    return [els.closing.value.trim(), els.from.value.trim()].filter(Boolean).join('\n');
+  }
+
+  function plainText() {
+    const parts = [];
+    const to = els.to.value.trim();
+    const body = els.body.value.trim();
+    const sign = signText();
+    if (to)   parts.push(to);
+    if (body) parts.push(body);
+    if (sign) parts.push(sign);
+    return parts.join('\n\n');
+  }
+
+  /* ── Preview (same look + typewriter as the home page letter) ── */
+  function buildReader() {
+    const to = $('read-to');
+    to.textContent = els.to.value.trim();
+    to.hidden = !to.textContent;
+
+    const sign = $('read-sign');
+    sign.textContent = signText();
+    sign.hidden = !sign.textContent;
+  }
+
+  function showAllText() {
+    clearTimeout(typeTimer);
+    readText.textContent = els.body.value.trim();
+    readText.classList.add('done');
+  }
+
+  function typeOut() {
+    const text = els.body.value.trim();
+    clearTimeout(typeTimer);
+    readText.classList.remove('done');
+    readText.textContent = '';
+    if (reduceMotion) { showAllText(); return; }
+
+    const perTick = Math.max(1, Math.ceil(text.length / 900)); // long letters never take forever
+    let i = 0;
+    (function tick() {
+      i = Math.min(text.length, i + perTick);
+      readText.textContent = text.slice(0, i);
+      if (i < text.length) typeTimer = setTimeout(tick, 18);
+      else readText.classList.add('done');
+    })();
+  }
+
+  function showPreview() {
+    if (!els.body.value.trim()) {
+      setStatus('Write a few lines first, then preview.');
+      els.body.focus();
+      return;
+    }
+    buildReader();
+    composer.hidden = true;
+    reader.hidden = false;
+    previewBtn.textContent = 'Keep editing';
+    previewing = true;
+    typeOut();
+    reader.focus({ preventScroll: true });
+    reader.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    setStatus('Tap the letter to show it all at once.');
+  }
+
+  function hidePreview() {
+    clearTimeout(typeTimer);
+    reader.hidden = true;
+    composer.hidden = false;
+    previewBtn.textContent = 'Preview letter';
+    previewing = false;
+    grow();
+    els.body.focus();
+  }
+
+  /* ── Actions ── */
+  async function copyText() {
+    const text = plainText();
+    if (!text) { setStatus('Nothing to copy yet.'); return; }
+    try {
+      await navigator.clipboard.writeText(text);
+      setStatus('Copied to clipboard.');
+    } catch (e) {
+      const ta = document.createElement('textarea');
+      ta.value = text;
+      ta.style.cssText = 'position:fixed;opacity:0;';
+      document.body.appendChild(ta);
+      ta.select();
+      let ok = false;
+      try { ok = document.execCommand('copy'); } catch (err) { /* ignore */ }
+      ta.remove();
+      setStatus(ok ? 'Copied to clipboard.' : 'Couldn’t copy. Select the text and copy it by hand.');
+    }
+  }
+
+  function triggerDownload(blob, filename) {
+    const url = URL.createObjectURL(blob);
+    const a   = document.createElement('a');
+    a.href = url;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+  }
+
+  function downloadText() {
+    const text = plainText();
+    if (!text) { setStatus('Nothing to download yet.'); return; }
+    triggerDownload(new Blob([text + '\n'], { type: 'text/plain;charset=utf-8' }), 'love-letter.txt');
+    setStatus('Downloaded love-letter.txt');
+  }
+
+  /* ── Download as an image that looks like the website letter card ── */
+  function roundRectPath(c, x, y, w, h, r) {
+    c.beginPath();
+    c.moveTo(x + r, y);
+    c.arcTo(x + w, y,     x + w, y + h, r);
+    c.arcTo(x + w, y + h, x,     y + h, r);
+    c.arcTo(x,     y + h, x,     y,     r);
+    c.arcTo(x,     y,     x + w, y,     r);
+    c.closePath();
+  }
+
+  function wrapLines(c, text, maxW) {
+    const out = [];
+    text.split('\n').forEach(par => {
+      if (!par.trim()) { out.push(''); return; }
+      let line = '';
+      par.split(/\s+/).forEach(word => {
+        const test = line ? line + ' ' + word : word;
+        if (line && c.measureText(test).width > maxW) { out.push(line); line = word; }
+        else line = test;
+      });
+      out.push(line);
+    });
+    return out;
+  }
+
+  async function downloadImage() {
+    const to   = els.to.value.trim();
+    const body = els.body.value.trim();
+    const sign = signText();
+    if (!body) { setStatus('Write a few lines first, then download.'); return; }
+    setStatus('Preparing your image…');
+
+    const F_SCRIPT = '"Dancing Script", cursive';
+    const F_BODY   = '"Cormorant Garamond", Georgia, serif';
+    if (document.fonts && document.fonts.load) {
+      try {
+        await Promise.all([
+          document.fonts.load('600 54px "Dancing Script"'),
+          document.fonts.load('italic 400 34px "Cormorant Garamond"')
+        ]);
+      } catch (e) { /* fall back to system fonts */ }
+    }
+
+    // Layout (1080px-wide image, 2x resolution)
+    const W = 1080, cardX = 90, cardW = 900, padX = 84, cardY = 100;
+    const innerW = cardW - padX * 2;
+    const BODY_LH = 68, SIGN_LH = 56;
+
+    const m = document.createElement('canvas').getContext('2d');
+    m.font = `italic 400 34px ${F_BODY}`;
+    const bodyLines = wrapLines(m, body, innerW);
+    const signLines = sign ? sign.split('\n') : [];
+
+    let cursor = cardY + 84;                      // top padding
+    const decoY = cursor;           cursor += 40 + 36;
+    const toY   = cursor;           if (to) cursor += 54 + 40;
+    const bodyY = cursor;           cursor += bodyLines.length * BODY_LH;
+    const signY = cursor + 56;      if (signLines.length) cursor += 56 + signLines.length * SIGN_LH;
+    const beatY = cursor + 56;      cursor += 56 + 64;
+    const cardH = cursor + 84 - cardY;
+    const H = cardY + cardH + 100;
+
+    const scale = Math.min(2, 16000 / H);
+    const c = document.createElement('canvas');
+    c.width  = Math.round(W * scale);
+    c.height = Math.round(H * scale);
+    const g = c.getContext('2d');
+    g.scale(scale, scale);
+
+    // Background: navy + the same pink / lavender glows as the site
+    g.fillStyle = '#0d0f1a';
+    g.fillRect(0, 0, W, H);
+    [[0.5, 0.08, 0.9, '244,167,185', 0.14], [0.9, 0.85, 0.7, '201,184,232', 0.12]].forEach(([fx, fy, fr, col, a]) => {
+      const rg = g.createRadialGradient(W * fx, H * fy, 0, W * fx, H * fy, W * fr);
+      rg.addColorStop(0, `rgba(${col},${a})`);
+      rg.addColorStop(1, `rgba(${col},0)`);
+      g.fillStyle = rg;
+      g.fillRect(0, 0, W, H);
+    });
+    const dots = ['244,167,185', '201,184,232', '255,255,255'];
+    for (let i = 0; i < 70; i++) {
+      g.fillStyle = `rgba(${dots[i % 3]},${(Math.random() * 0.5 + 0.1).toFixed(2)})`;
+      g.beginPath();
+      g.arc(Math.random() * W, Math.random() * H, Math.random() * 2 + 0.6, 0, Math.PI * 2);
+      g.fill();
+    }
+
+    // Card: gradient border + dark glass inside
+    g.save();
+    g.shadowColor = 'rgba(244,167,185,0.2)';
+    g.shadowBlur = 70;
+    roundRectPath(g, cardX, cardY, cardW, cardH, 40);
+    const border = g.createLinearGradient(cardX, cardY, cardX + cardW, cardY + cardH);
+    border.addColorStop(0, '#6b4a62');
+    border.addColorStop(1, '#5d5478');
+    g.fillStyle = border;
+    g.fill();
+    g.restore();
+    roundRectPath(g, cardX + 3, cardY + 3, cardW - 6, cardH - 6, 37);
+    g.fillStyle = '#0e1020';
+    g.fill();
+
+    // Text
+    const cx = W / 2;
+    g.textAlign = 'center';
+    g.textBaseline = 'middle';
+
+    g.font = `400 40px ${F_BODY}`;
+    g.fillStyle = 'rgba(244,167,185,0.6)';
+    g.fillText('✦', cx, decoY + 20);
+
+    if (to) {
+      g.font = `600 54px ${F_SCRIPT}`;
+      g.fillStyle = '#f4a7b9';
+      g.fillText(to, cx, toY + 27, innerW);
+    }
+
+    g.font = `italic 400 34px ${F_BODY}`;
+    g.fillStyle = 'rgba(255,255,255,0.6)';
+    bodyLines.forEach((line, i) => g.fillText(line, cx, bodyY + i * BODY_LH + BODY_LH / 2));
+
+    g.font = `400 42px ${F_SCRIPT}`;
+    g.fillStyle = 'rgba(255,255,255,0.6)';
+    signLines.forEach((line, i) => g.fillText(line, cx, signY + i * SIGN_LH + SIGN_LH / 2, innerW));
+
+    // Heartbeat line (same shape as the site)
+    const k = 1.6, bx = cx - 50 * k, by = beatY;
+    const pts = [[0,20],[15,20],[20,5],[25,35],[32,5],[38,35],[43,20],[50,20],[55,5],[60,35],[65,20],[100,20]];
+    g.beginPath();
+    pts.forEach(([x, y], i) => (i ? g.lineTo(bx + x * k, by + y * k) : g.moveTo(bx + x * k, by + y * k)));
+    g.strokeStyle = '#f4a7b9';
+    g.lineWidth = 3;
+    g.lineCap = 'round';
+    g.lineJoin = 'round';
+    g.stroke();
+
+    const blob = await new Promise(res => c.toBlob(res, 'image/png'));
+    if (!blob) { setStatus('Couldn’t create the image in this browser. Try Print or Download as text.'); return; }
+    triggerDownload(blob, 'love-letter.png');
+    setStatus('Downloaded love-letter.png');
+  }
+
+  /* ── Download menu ── */
+  const dlBtn  = $('btn-download');
+  const dlMenu = $('download-menu');
+  function openMenu(open) {
+    dlMenu.hidden = !open;
+    dlBtn.setAttribute('aria-expanded', String(open));
+  }
+
+  function printLetter() {
+    if (!els.body.value.trim()) { setStatus('Write a few lines first, then print.'); return; }
+    buildReader();
+    showAllText();
+    window.print();
+  }
+
+  function disarmClear() {
+    clearTimeout(clearTimer);
+    clearBtn.classList.remove('armed');
+    clearBtn.textContent = 'Clear';
+  }
+
+  function clearAll() {
+    if (!clearBtn.classList.contains('armed')) {
+      clearBtn.classList.add('armed');
+      clearBtn.textContent = 'Tap again to clear';
+      clearTimer = setTimeout(disarmClear, 3500);
+      return;
+    }
+    disarmClear();
+    els.to.value = '';
+    els.body.value = '';
+    els.from.value = '';
+    els.closing.value = DEFAULT_CLOSING;
+    try { localStorage.removeItem(KEY); } catch (e) { /* ignore */ }
+    baseStatus = '';
+    if (previewing) hidePreview();
+    grow();
+    updateCount();
+    setStatus('Letter cleared.');
+  }
+
+  /* ── Starters: insert at the cursor ── */
+  document.querySelectorAll('.starter').forEach(chip => {
+    chip.addEventListener('click', () => {
+      const ta  = els.body;
+      const pos = ta.selectionStart ?? ta.value.length;
+      const end = ta.selectionEnd ?? pos;
+      const before = ta.value.slice(0, pos);
+      const after  = ta.value.slice(end);
+      let sep = '';
+      if (before.trim()) sep = before.endsWith('\n\n') ? '' : before.endsWith('\n') ? '\n' : '\n\n';
+      const inserted = before + sep + chip.dataset.text + ' ';
+      ta.value = inserted + after;
+      ta.focus();
+      ta.setSelectionRange(inserted.length, inserted.length);
+      onInput();
+    });
+  });
+
+  /* ── Wiring ── */
+  els.body.addEventListener('input', onInput);
+  [els.to, els.closing, els.from].forEach(el => el.addEventListener('input', queueSave));
+
+  readText.addEventListener('click', showAllText);
+  previewBtn.addEventListener('click', () => (previewing ? hidePreview() : showPreview()));
+  $('btn-copy').addEventListener('click', copyText);
+  dlBtn.addEventListener('click', e => { e.stopPropagation(); openMenu(dlMenu.hidden); });
+  $('dl-image').addEventListener('click', () => { openMenu(false); downloadImage(); });
+  $('dl-text').addEventListener('click',  () => { openMenu(false); downloadText(); });
+  document.addEventListener('click', e => { if (!dlMenu.hidden && !dlMenu.contains(e.target)) openMenu(false); });
+  document.addEventListener('keydown', e => { if (e.key === 'Escape' && !dlMenu.hidden) { openMenu(false); dlBtn.focus(); } });
+  $('btn-print').addEventListener('click', printLetter);
+  clearBtn.addEventListener('click', clearAll);
+  window.addEventListener('resize', grow);
+
+  load();
+  grow();
+  updateCount();
+  if (document.fonts && document.fonts.ready) document.fonts.ready.then(grow);
+})();
+
+/* ============================================================
+   Everything below runs on the HOME PAGE only (index.html).
+   The particle background is shared with the wheel and letter pages.
+   ============================================================ */
+/* ============================================================
+   PARTICLE CANVAS
+   ============================================================ */
+(function initParticles() {
+  const canvas = document.getElementById('particles-canvas');
+  const ctx    = canvas.getContext('2d');
+
+  let W, H, particles = [];
+
+  const COLORS = ['rgba(244,167,185,', 'rgba(201,184,232,', 'rgba(255,255,255,'];
+
+  function resize() {
+    W = canvas.width  = window.innerWidth;
+    H = canvas.height = window.innerHeight;
+  }
+
+  function createParticle() {
+    return {
+      x:     Math.random() * W,
+      y:     Math.random() * H,
+      r:     Math.random() * 2 + 0.5,
+      dx:    (Math.random() - 0.5) * 0.3,
+      dy:   -(Math.random() * 0.4 + 0.1),
+      color: COLORS[Math.floor(Math.random() * COLORS.length)],
+      alpha: Math.random() * 0.5 + 0.1
+    };
+  }
+
+  function init() {
+    resize();
+    particles = Array.from({ length: 90 }, createParticle);
+  }
+
+  function draw() {
+    ctx.clearRect(0, 0, W, H);
+    particles.forEach(p => {
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+      ctx.fillStyle = p.color + p.alpha + ')';
+      ctx.fill();
+
+      p.x += p.dx;
+      p.y += p.dy;
+
+      if (p.y < -10)   p.y = H + 10;
+      if (p.x < -10)   p.x = W + 10;
+      if (p.x > W + 10) p.x = -10;
+    });
+    requestAnimationFrame(draw);
+  }
+
+  window.addEventListener('resize', resize);
+  init();
+  draw();
+})();
+
+if (document.getElementById('hero')) {
 
 /* ============================================================
    DATA
@@ -63,6 +847,62 @@ const CAROUSEL_ITEMS = [
     date: 'April 29',
     memo: 'The day you have a Professional IT, ikaw na next year niyan my future Nursing.'
   },
+  {
+    img: 'img/noook.jpg',
+    gradient: 'linear-gradient(135deg, #a8edea 0%, #fed6e3 100%)',
+    emoji: '🛏️',
+    title: 'First ever sleep together natin!',
+    date: 'May 14',
+    memo: 'The day na super sarap ng ulam natin and full of laughter and enjoyment ang ginagawa natin, it felt like we\'re newly wed babii.'
+  },
+   {
+    img: 'img/inasal.jpeg',
+    gradient: 'linear-gradient(135deg, #a8edea 0%, #c9b8e8 100%)',
+    emoji: '🍗',
+    title: 'A simple date with a simple meal',
+    date: 'June 11',
+    memo: 'Kahit na simple date with a simple meal lang siya together, masarap ang meal natin dahil kasama ko ang baby koo (alam kong matatawa ka dito babii).'
+  },
+   {
+    img: 'img/aaaa.jpg',
+    gradient: 'linear-gradient(135deg, #a8edea 0%, #c9b8e8 100%)',
+    emoji: '🏊🏼‍♂️',
+    title: 'Swimming date ulit together',
+    date: 'July 8',
+    memo: 'Kahit super busog sa unli, worth it naman dahil sa time natin together, babii! After kumain, swimming date ulit tayo, then dumiretso pa sa Lara kahit pagod na pagod na tayo.'
+  },
+  {
+    img: 'img/blakes.jpg',
+    gradient: 'linear-gradient(135deg, #a8edea 0%, #c9b8e8 100%)',
+    emoji: '🥩',
+    title: 'A simple date with a simple meal',
+    date: 'July 23',
+    memo: 'Our first fancy restaurant, and my first treat for you using my own hard-earned money. Sobrang saya ko na na-experience natin ito together.'
+  },
+  {
+    img: 'img/Bday.jpg',
+    gradient: 'linear-gradient(135deg, #a8edea 0%, #c9b8e8 100%)',
+    emoji: '🥩',
+    title: '10 monthsary date',
+    date: 'August 23',
+    memo: 'Ito ang time na nakisuyo kang magpabili ng "30" na balloon, ang kaso nabili ko 30 pieces na balloon'
+  },
+  {
+    img: 'img/nigiri.jpg',
+    gradient: 'linear-gradient(135deg, #a8edea 0%, #c9b8e8 100%)',
+    emoji: '🍙',
+    title: 'Simple date together',
+    date: 'September 2',
+    memo: 'Nigiri and Kamir date natin babii, super sarap ng dalawa, gusto ko ulitin ulit ACCCKKKK'
+  },
+  {
+    img: 'img/gupit.jpg',
+    gradient: 'linear-gradient(135deg, #a8edea 0%, #c9b8e8 100%)',
+    emoji: '💇🏻‍♀️',
+    title: 'Bagong gupit ang baby ko oh',
+    date: 'September 10',
+    memo: 'Bagong gupit ng baby ko oh, super cute and super na s-stunned ako dahil sa ganda mo paratii.'
+  },
 ];
 
 const FLIPCARD_ITEMS = [
@@ -111,6 +951,7 @@ const FLIPCARD_ITEMS = [
     backTitle: 'Everything Ahead of Us',
     backText: 'There are so many places I want to go, so many memories I want to make — and I want every single one of them to be with you.'
   },
+
 ];
 
 const TIMELINE_ITEMS = [
@@ -146,64 +987,9 @@ const TIMELINE_ITEMS = [
   },
 ];
 
-const LETTER_TEXT = `No matter how busy life gets, I'll always be grateful that I met someone who brings peace, happiness, and comfort into my life. You make the ordinary feel extraordinary just by being in it. Every small moment — a look, coffee date, bahay date, a laughter, a situation or a problem, a gift every moment is worth to hold forever. Tulad ng sinabi ko sayo babii, every situation we may encounter, aayusin natin yan together, magkalayo man tayo or nasa iisang bahay tayo babii you're other half is always here to support, to help and to lift you up everyday babii. Dahil you deserve to experience this treatment babii, what I've said earlier the word "perfect" I really mean it babii, ang perfect ng relationship natin wherein pinagtutulungan natin ang ano mang bagay, support each others back and the care, love, laughter is super perfect babii. Kaya thank you for choosing me, every single day na hanggang ngayon super thankful akong nakuha ko ang sagot mong "yes" nung October 23 hehehe. Here's to all the beautiful moments still ahead of us. I hope nagustuhan mo babii, more picture kukuhanin natin babii to make it as our memories! Ipapakita natin ang website na ito sa anak natin babiii para makita niya ang milestone natin every month, every journey natin every month, and every moment natin every month.`;
+const LETTER_TEXT = `No matter how busy life gets, I'll always be grateful that I met someone who brings peace, happiness, and comfort into my life. You make the ordinary feel extraordinary just by being in it. Every small moment — a look, coffee date, bahay date, a laughter, a situation or a problem, a gift every moment is worth to hold forever. Tulad ng sinabi ko sayo babii, every situation we may encounter, aayusin natin yan together, magkalayo man tayo or nasa iisang bahay tayo babii you're other half is always here to support, to help and to lift you up everyday babii. Dahil you deserve to experience this treatment babii, what I've said earlier the word "perfect" I really mean it babii, ang perfect ng relationship natin wherein pinagtutulungan natin ang ano mang bagay, support each others back and the care, love, laughter is super perfect babii. Kaya thank you for choosing me, every single day na hanggang ngayon super thankful akong nakuha ko ang sagot mong "yes" nung October 23 hehehe. Here's to all the beautiful moments still ahead of us. I hope nagustuhan mo babii, more picture kukuhanin natin babii to make it as our memories! Ipapakita natin ang website na ito sa anak natin babiii para makita niya ang milestone natin every month, every journey natin every month, and every moment natin every month.
 
-/* ============================================================
-   PARTICLE CANVAS
-   ============================================================ */
-(function initParticles() {
-  const canvas = document.getElementById('particles-canvas');
-  const ctx    = canvas.getContext('2d');
-
-  let W, H, particles = [];
-
-  const COLORS = ['rgba(244,167,185,', 'rgba(201,184,232,', 'rgba(255,255,255,'];
-
-  function resize() {
-    W = canvas.width  = window.innerWidth;
-    H = canvas.height = window.innerHeight;
-  }
-
-  function createParticle() {
-    return {
-      x:     Math.random() * W,
-      y:     Math.random() * H,
-      r:     Math.random() * 2 + 0.5,
-      dx:    (Math.random() - 0.5) * 0.3,
-      dy:   -(Math.random() * 0.4 + 0.1),
-      color: COLORS[Math.floor(Math.random() * COLORS.length)],
-      alpha: Math.random() * 0.5 + 0.1
-    };
-  }
-
-  function init() {
-    resize();
-    particles = Array.from({ length: 90 }, createParticle);
-  }
-
-  function draw() {
-    ctx.clearRect(0, 0, W, H);
-    particles.forEach(p => {
-      ctx.beginPath();
-      ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
-      ctx.fillStyle = p.color + p.alpha + ')';
-      ctx.fill();
-
-      p.x += p.dx;
-      p.y += p.dy;
-
-      if (p.y < -10)   p.y = H + 10;
-      if (p.x < -10)   p.x = W + 10;
-      if (p.x > W + 10) p.x = -10;
-    });
-    requestAnimationFrame(draw);
-  }
-
-  window.addEventListener('resize', resize);
-  init();
-  draw();
-})();
-
+Hi babiii, Happy happy happy 1st anniversary to us!! I know marami na tayong nagawa sa milestone natin wherein maraming laughters, maraming iyakan, maraming open forum ang nagawa and maraming excitement + enjoyment ang ginagawa natin sa loob ng isang taon. And I wanted to say po is Thank you, I'm grateful enough for us babii and alam ko na minsan makulit ako and hindi nakikinig kaya sorry pooo, I'm doing my best to be better everyday po kaya wag ka po sana magsawa sa akin hehe. Kaya even though na may ups-downs tayong dalawa you're still the one I want to rant po, to lean on your shoulder and to rant everytime there's a problem po. Hindi man ako nagiging honest sa part ko being your boyfriend whenever we had a problem po, kaya I'm so sorry about it babiii. This website is for us babii, tulad ng sinabi ko noon na gagawa akong website sa atin na nagawa natin within the month, I know some of our memories lang ang linagay ko dito babii, but despite that po alam naman natin ang nangyari sa loob ng month na yon kahit na hindi ko nailagay lahat. Isang taon na po mag mula nung sinagot and nakuha ko ang "yes" mo babii, and I'm very happy na umabot tayo dito, more years to come and more milestone to encounter babii.`;
 /* ============================================================
    FLOATING HEARTS (HERO)
    ============================================================ */
@@ -489,9 +1275,19 @@ const LETTER_TEXT = `No matter how busy life gets, I'll always be grateful that 
     container.appendChild(star);
   }
 
-  // CTA interaction
-  document.getElementById('ending-cta').addEventListener('click', () => {
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+  // CTA interaction — fade out, then continue to the spin-the-wheel page
+  const endingCta = document.getElementById('ending-cta');
+  endingCta.addEventListener('click', e => {
+    e.preventDefault();
+    const target = endingCta.getAttribute('href') || 'wheel.html';
+    document.body.style.transition = 'opacity 0.5s ease';
+    document.body.style.opacity = '0';
+    setTimeout(() => { window.location.href = target; }, 450);
+  });
+
+  // Coming back with the browser's Back button: un-fade the page
+  window.addEventListener('pageshow', () => {
+    document.body.style.opacity = '1';
   });
 })();
 
@@ -810,3 +1606,5 @@ const LETTER_TEXT = `No matter how busy life gets, I'll always be grateful that 
     window.addEventListener('load', setupCanvas);
   }
 })();
+
+} // end home-page-only code
