@@ -840,7 +840,7 @@ const CAROUSEL_ITEMS = [
     memo: 'Super saya kong comfortable kang nakikipag-bond dito babii.'
   },
   {
-    img: 'img/graduation.jpg',
+    img: 'img/graduation.JPG',
     gradient: 'linear-gradient(135deg, #a8edea 0%, #fed6e3 100%)',
     emoji: '🌊',
     title: 'Your baby did it!',
@@ -848,7 +848,7 @@ const CAROUSEL_ITEMS = [
     memo: 'The day you have a Professional IT, ikaw na next year niyan my future Nursing.'
   },
   {
-    img: 'img/noook.jpg',
+    img: 'img/noook.JPG',
     gradient: 'linear-gradient(135deg, #a8edea 0%, #fed6e3 100%)',
     emoji: '🛏️',
     title: 'First ever sleep together natin!',
@@ -856,7 +856,7 @@ const CAROUSEL_ITEMS = [
     memo: 'The day na super sarap ng ulam natin and full of laughter and enjoyment ang ginagawa natin, it felt like we\'re newly wed babii.'
   },
    {
-    img: 'img/inasal.jpeg',
+    img: 'img/inasal.JPEG',
     gradient: 'linear-gradient(135deg, #a8edea 0%, #c9b8e8 100%)',
     emoji: '🍗',
     title: 'A simple date with a simple meal',
@@ -864,7 +864,7 @@ const CAROUSEL_ITEMS = [
     memo: 'Kahit na simple date with a simple meal lang siya together, masarap ang meal natin dahil kasama ko ang baby koo (alam kong matatawa ka dito babii).'
   },
    {
-    img: 'img/aaaa.jpg',
+    img: 'img/aaaa.JPG',
     gradient: 'linear-gradient(135deg, #a8edea 0%, #c9b8e8 100%)',
     emoji: '🏊🏼‍♂️',
     title: 'Swimming date ulit together',
@@ -872,7 +872,7 @@ const CAROUSEL_ITEMS = [
     memo: 'Kahit super busog sa unli, worth it naman dahil sa time natin together, babii! After kumain, swimming date ulit tayo, then dumiretso pa sa Lara kahit pagod na pagod na tayo.'
   },
   {
-    img: 'img/blakes.jpg',
+    img: 'img/blakes.JPG',
     gradient: 'linear-gradient(135deg, #a8edea 0%, #c9b8e8 100%)',
     emoji: '🥩',
     title: 'A simple date with a simple meal',
@@ -880,7 +880,7 @@ const CAROUSEL_ITEMS = [
     memo: 'Our first fancy restaurant, and my first treat for you using my own hard-earned money. Sobrang saya ko na na-experience natin ito together.'
   },
   {
-    img: 'img/Bday.jpg',
+    img: 'img/Bday.JPG',
     gradient: 'linear-gradient(135deg, #a8edea 0%, #c9b8e8 100%)',
     emoji: '🥩',
     title: '10 monthsary date',
@@ -888,7 +888,7 @@ const CAROUSEL_ITEMS = [
     memo: 'Ito ang time na nakisuyo kang magpabili ng "30" na balloon, ang kaso nabili ko 30 pieces na balloon'
   },
   {
-    img: 'img/nigiri.jpg',
+    img: 'img/nigiri.JPG',
     gradient: 'linear-gradient(135deg, #a8edea 0%, #c9b8e8 100%)',
     emoji: '🍙',
     title: 'Simple date together',
@@ -896,7 +896,7 @@ const CAROUSEL_ITEMS = [
     memo: 'Nigiri and Kamir date natin babii, super sarap ng dalawa, gusto ko ulitin ulit ACCCKKKK'
   },
   {
-    img: 'img/gupit.jpg',
+    img: 'img/gupit.JPG',
     gradient: 'linear-gradient(135deg, #a8edea 0%, #c9b8e8 100%)',
     emoji: '💇🏻‍♀️',
     title: 'Bagong gupit ang baby ko oh',
