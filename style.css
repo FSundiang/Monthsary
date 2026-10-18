@@ -686,6 +686,7 @@ button { border: none; background: none; cursor: pointer; font-family: inherit; 
   color: var(--white-dim);
   line-height: 2;
   min-height: 80px;
+  white-space: pre-wrap; /* keep the blank line between paragraphs */
 }
 
 .letter-text::after {
